@@ -127,17 +127,21 @@ def index():
         "date_to": date_to or "",
     }
 
-    # Getting-started checklist for new users (only shown when no lines exist)
-    setup_done = {}
-    if current_user.user_type == "account" and not lines:
-        setup_done = {
-            "calls_connected": bool(
-                current_user.twilio_service_sid
-                or (current_user.callrail_api_key_encrypted and current_user.callrail_account_id)
-            ),
-            "has_partners": len(partners) > 0,
-            "has_lines": False,
-        }
+    # Getting-started checklist (shown until ALL 3 steps are complete)
+    setup_done = None
+    if current_user.user_type == "account":
+        calls_connected = bool(
+            current_user.twilio_service_sid
+            or (current_user.callrail_api_key_encrypted and current_user.callrail_account_id)
+        )
+        has_partners = len(partners) > 0
+        has_lines = len(lines) > 0
+        if not (calls_connected and has_partners and has_lines):
+            setup_done = {
+                "calls_connected": calls_connected,
+                "has_partners": has_partners,
+                "has_lines": has_lines,
+            }
 
     return render_template(
         "dashboard/index.html",

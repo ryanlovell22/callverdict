@@ -5,6 +5,7 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///callverdict.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    PREFERRED_URL_SCHEME = "https"
 
     # Fix Supabase/Railway postgres:// vs postgresql:// issue
     if SQLALCHEMY_DATABASE_URI.startswith("postgres://"):

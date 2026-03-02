@@ -20,6 +20,8 @@
                 {% if current_user.user_type == 'account' %}
                 <li><a href="{{ url_for('lines.index') }}" {% if active_page == 'lines' %}aria-current="page"{% endif %}>Tracking Lines</a></li>
                 <li><a href="{{ url_for('partners.index') }}" {% if active_page == 'partners' %}aria-current="page"{% endif %}>Partners</a></li>
+                <li><a href="{{ url_for('dashboard.shared_links') }}" {% if active_page == 'shared_links' %}aria-current="page"{% endif %}>Shared Links</a></li>
+                <li><a href="{{ url_for('billing.index') }}" {% if active_page == 'billing' %}aria-current="page"{% endif %}>Billing</a></li>
                 <li><a href="{{ url_for('settings.index') }}" {% if active_page == 'settings' %}aria-current="page"{% endif %}>Settings</a></li>
                 {% endif %}
                 <li><a href="{{ url_for('auth.logout') }}">Log out</a></li>

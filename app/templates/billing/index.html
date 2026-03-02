@@ -12,6 +12,10 @@
     {% endif %}
     </p>
 
+    {% if account.is_admin %}
+    <h4>Usage</h4>
+    <p><strong>Unlimited</strong> (admin account)</p>
+    {% else %}
     <h4>Usage This Period</h4>
     <p>{{ account.plan_calls_used or 0 }} of {{ account.plan_calls_limit or 10 }} calls used</p>
     <progress value="{{ account.plan_calls_used or 0 }}" max="{{ account.plan_calls_limit or 10 }}"></progress>
@@ -21,13 +25,14 @@
     {% elif account.plan_calls_used and account.plan_calls_limit and account.plan_calls_used >= (account.plan_calls_limit * 0.8) %}
     <p style="color: var(--pico-ins-color);">You're approaching your call limit. Consider upgrading.</p>
     {% endif %}
+    {% endif %}
 
     {% if account.stripe_subscription_id %}
     <a href="{{ url_for('billing.portal') }}" role="button" class="outline">Manage Subscription</a>
     {% endif %}
 </article>
 
-{% if account.stripe_plan == 'free' or not account.stripe_subscription_id %}
+{% if not account.is_admin and (account.stripe_plan == 'free' or not account.stripe_subscription_id) %}
 <h3>Upgrade Your Plan</h3>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; max-width: 800px;">
     {% if account.stripe_plan != 'starter' %}

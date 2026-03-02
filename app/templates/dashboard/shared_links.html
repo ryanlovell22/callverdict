@@ -65,10 +65,14 @@
                     All lines
                     {% endif %}
                 </td>
-                <td>
-                    <input type="text" value="{{ request.host_url }}proof/{{ d.share_token }}"
-                           readonly style="font-size: 0.8rem; margin: 0; padding: 0.25rem;"
+                <td style="white-space: nowrap;">
+                    <input type="text" id="proof-url-{{ d.id }}"
+                           value="{{ url_for('shared.public_dashboard', share_token=d.share_token, _external=True) }}"
+                           readonly style="font-size: 0.8rem; margin: 0; padding: 0.25rem; display: inline-block; width: 200px;"
                            onclick="this.select();">
+                    <button type="button" class="outline"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-left: 0.25rem;"
+                            onclick="copyProofUrl('proof-url-{{ d.id }}', this)">Copy</button>
                 </td>
                 <td>{{ 'Yes' if d.password_hash else 'No' }}</td>
                 <td>{{ 'Yes' if d.active else 'No' }}</td>
@@ -94,4 +98,24 @@
     <p>No shared links yet. Create one above to share call proof with your clients.</p>
 </article>
 {% endif %}
+
+<script>
+function copyProofUrl(inputId, btn) {
+    var input = document.getElementById(inputId);
+    var url = input.value;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function() {
+            var orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = orig; }, 2000);
+        });
+    } else {
+        input.select();
+        document.execCommand('copy');
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 2000);
+    }
+}
+</script>
 {% endblock %}

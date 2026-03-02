@@ -34,21 +34,12 @@ def add():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
 
-        if not name or not email or not password:
-            flash("All fields are required.", "error")
+        if not name or not email:
+            flash("Name and email are required.", "error")
             return render_template("partners/form.html", active_page="partners")
 
-        if len(password) < 8:
-            flash("Password must be at least 8 characters.", "error")
-            return render_template("partners/form.html", active_page="partners")
-
-        # Check for duplicate email across both accounts and partners
-        from ..models import Account
-        if Account.query.filter_by(email=email).first():
-            flash("That email is already in use.", "error")
-            return render_template("partners/form.html", active_page="partners")
+        # Check for duplicate email
         if Partner.query.filter_by(email=email).first():
             flash("That email is already in use.", "error")
             return render_template("partners/form.html", active_page="partners")
@@ -58,7 +49,6 @@ def add():
             name=name,
             email=email,
         )
-        partner.set_password(password)
         db.session.add(partner)
         db.session.commit()
 

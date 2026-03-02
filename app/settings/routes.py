@@ -75,6 +75,7 @@ def index():
         # Save credentials
         account.twilio_account_sid = sid
         account.twilio_auth_token_encrypted = token
+        db.session.commit()
 
         if not account.twilio_service_sid:
             # First-time setup — provision CI service + operator
@@ -96,14 +97,14 @@ def index():
                     "success",
                 )
             except Exception:
-                db.session.rollback()
+                account.twilio_service_sid = None
+                db.session.commit()
                 logger.exception("Failed to provision Twilio CI")
                 flash(
-                    "Credentials are valid but CI setup failed. "
-                    "Please try again or contact support.",
-                    "error",
+                    "Connected to Twilio. Note: automatic call intelligence setup failed "
+                    "— calls will still be synced via polling.",
+                    "warning",
                 )
-                return redirect(url_for("settings.index"))
         else:
             # Just updating credentials
             db.session.commit()
@@ -146,16 +147,10 @@ def index():
     australian_timezones = [tz for tz in sorted(pytz.all_timezones) if tz.startswith('Australia/')]
 
     # Data for Upload section
-    from ..models import TrackingLine, Partner, SharedDashboard
+    from ..models import TrackingLine
     lines = TrackingLine.query.filter_by(
         account_id=account.id, active=True
     ).all()
-
-    # Data for Shared Links section
-    partners = Partner.query.filter_by(account_id=account.id).all()
-    dashboards = SharedDashboard.query.filter_by(
-        account_id=account.id
-    ).order_by(SharedDashboard.created_at.desc()).all()
 
     return render_template(
         "settings/index.html",
@@ -171,8 +166,6 @@ def index():
         current_timezone=account.timezone or "Australia/Adelaide",
         account=account,
         lines=lines,
-        partners=partners,
-        dashboards=dashboards,
         active_page="settings",
     )
 

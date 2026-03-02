@@ -19,6 +19,44 @@
     {% endif %}
 {% endif %}
 
+{% if setup_done %}
+<!-- Getting-started checklist -->
+<article style="max-width: 600px;">
+    <h3>Welcome to CallVerdict!</h3>
+    <p>Get set up in 3 steps:</p>
+    <ol style="list-style: none; padding-left: 0;">
+        <li style="margin-bottom: 1rem; {% if setup_done.calls_connected %}opacity: 0.6; text-decoration: line-through;{% endif %}">
+            {% if setup_done.calls_connected %}&#10003;{% else %}&#9744;{% endif %}
+            <strong>1. Connect your calls</strong>
+            {% if not setup_done.calls_connected %}
+            &rarr; <a href="{{ url_for('settings.index') }}">Link your Twilio or CallRail account</a>
+            {% else %}
+            &mdash; Done!
+            {% endif %}
+        </li>
+        <li style="margin-bottom: 1rem; {% if setup_done.has_partners %}opacity: 0.6; text-decoration: line-through;{% endif %}">
+            {% if setup_done.has_partners %}&#10003;{% else %}&#9744;{% endif %}
+            <strong>2. Add your partners</strong>
+            {% if not setup_done.has_partners %}
+            &rarr; <a href="{{ url_for('partners.index') }}">Add your contractors</a>
+            {% else %}
+            &mdash; Done!
+            {% endif %}
+        </li>
+        <li style="margin-bottom: 1rem; {% if setup_done.has_lines %}opacity: 0.6; text-decoration: line-through;{% endif %}">
+            {% if setup_done.has_lines %}&#10003;{% else %}&#9744;{% endif %}
+            <strong>3. Add tracking lines</strong>
+            {% if not setup_done.has_lines %}
+            &rarr; <a href="{{ url_for('lines.index') }}">Tell us which phone numbers to monitor</a>
+            {% else %}
+            &mdash; Done!
+            {% endif %}
+        </li>
+    </ol>
+    <p style="color: var(--pico-muted-color);">Then calls will appear here automatically.</p>
+</article>
+{% endif %}
+
 <!-- Stats Bar -->
 <div class="grid">
     <article>
@@ -161,46 +199,8 @@
 </nav>
 {% endif %}
 {% else %}
-    {% if setup_done %}
-    <!-- Getting-started checklist for new users -->
-    <article style="max-width: 600px;">
-        <h3>Welcome to CallVerdict!</h3>
-        <p>Get set up in 3 steps:</p>
-        <ol style="list-style: none; padding-left: 0;">
-            <li style="margin-bottom: 1rem; {% if setup_done.calls_connected %}opacity: 0.6;{% endif %}">
-                {% if setup_done.calls_connected %}&#9745;{% else %}&#9744;{% endif %}
-                <strong>1. Connect your calls</strong>
-                {% if not setup_done.calls_connected %}
-                &rarr; <a href="{{ url_for('settings.index') }}">Link your Twilio or CallRail account</a>
-                {% else %}
-                &mdash; Done!
-                {% endif %}
-            </li>
-            <li style="margin-bottom: 1rem; {% if setup_done.has_partners %}opacity: 0.6;{% endif %}">
-                {% if setup_done.has_partners %}&#9745;{% else %}&#9744;{% endif %}
-                <strong>2. Add your partners</strong>
-                {% if not setup_done.has_partners %}
-                &rarr; <a href="{{ url_for('partners.index') }}">Add your contractors</a>
-                {% else %}
-                &mdash; Done!
-                {% endif %}
-            </li>
-            <li style="margin-bottom: 1rem; {% if setup_done.has_lines %}opacity: 0.6;{% endif %}">
-                {% if setup_done.has_lines %}&#9745;{% else %}&#9744;{% endif %}
-                <strong>3. Add tracking lines</strong>
-                {% if not setup_done.has_lines %}
-                &rarr; <a href="{{ url_for('lines.index') }}">Tell us which phone numbers to monitor</a>
-                {% else %}
-                &mdash; Done!
-                {% endif %}
-            </li>
-        </ol>
-        <p style="color: var(--pico-muted-color);">Then calls will appear here automatically.</p>
-    </article>
-    {% else %}
     <article>
         <p>No calls found for this period.</p>
     </article>
-    {% endif %}
 {% endif %}
 {% endblock %}

@@ -7,13 +7,10 @@
 <article style="max-width: 600px;">
     <form method="post">
         <label for="name">Name</label>
-        <input type="text" id="name" name="name" placeholder="e.g. Dan Smith" required>
+        <input type="text" id="name" name="name" placeholder="e.g. Dan Smith" required autocomplete="off">
 
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="dan@example.com" required>
-
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Min 8 characters" required minlength="8">
+        <input type="email" id="email" name="email" placeholder="dan@example.com" required autocomplete="off">
 
         <button type="submit">Create Partner</button>
         <a href="{{ url_for('partners.index') }}" role="button" class="outline">Cancel</a>

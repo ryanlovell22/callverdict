@@ -3,7 +3,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 
 from .config import Config
-from .models import db, Account, Partner
+from .models import db, Account
 
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
@@ -17,8 +17,6 @@ def load_user(user_id):
         uid = int(uid)
         if prefix == "account":
             return db.session.get(Account, uid)
-        elif prefix == "partner":
-            return db.session.get(Partner, uid)
     # Fallback for legacy sessions without prefix
     return db.session.get(Account, int(user_id))
 
