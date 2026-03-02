@@ -7,8 +7,7 @@ from datetime import datetime, timezone
 from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 
-from ..models import db, Call, TrackingLine, Account
-from ..twilio_service import submit_media_to_ci
+from ..models import db, Call, TrackingLine
 from ..ai_classifier import classify_transcript
 from . import bp
 
@@ -32,13 +31,15 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def _process_uploads(file_tasks, account_id, has_twilio, app):
-    """Background thread: transcribe + classify each uploaded file.
+def _process_uploads(file_tasks, account_id, app):
+    """Background thread: transcribe + classify each uploaded file via OpenAI.
 
     file_tasks is a list of dicts: {"call_id": int, "temp_path": str, "temp_filename": str}
     """
     with app.app_context():
-        account = db.session.get(Account, account_id)
+        from openai import OpenAI
+        api_key = app.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        client = OpenAI(api_key=api_key)
 
         for task in file_tasks:
             call = db.session.get(Call, task["call_id"])
@@ -46,39 +47,33 @@ def _process_uploads(file_tasks, account_id, has_twilio, app):
                 continue
 
             try:
-                if has_twilio:
-                    media_url = f"{task['base_url']}/upload/serve/{task['temp_filename']}"
-                    transcript_sid = submit_media_to_ci(
-                        account.twilio_account_sid,
-                        account.twilio_auth_token_encrypted,
-                        account.twilio_service_sid,
-                        media_url,
+                with open(task["temp_path"], "rb") as audio_file:
+                    transcript = client.audio.transcriptions.create(
+                        model="whisper-1",
+                        file=audio_file,
                     )
-                    call.transcript_sid = transcript_sid
-                    db.session.commit()
-                else:
-                    from openai import OpenAI
-                    api_key = app.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
-                    client = OpenAI(api_key=api_key)
 
-                    with open(task["temp_path"], "rb") as audio_file:
-                        transcript = client.audio.transcriptions.create(
-                            model="whisper-1",
-                            file=audio_file,
-                        )
+                call.full_transcript = transcript.text
 
-                    call.transcript = transcript.text
+                tracking_line = call.tracking_line
+                biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
+                result = classify_transcript(transcript.text, business_name=biz_name, call_date=call.call_date)
+                call.classification = result.get("classification")
+                call.confidence = result.get("confidence")
+                call.summary = result.get("summary")
+                call.service_type = result.get("service_type")
+                call.urgent = result.get("urgent", False)
+                call.customer_name = result.get("customer_name")
+                call.customer_address = result.get("customer_address")
+                call.booking_time = result.get("booking_time")
+                call.booking_date = _parse_booking_date(result.get("booking_date"))
+                call.analysed_at = datetime.now(timezone.utc)
+                call.status = "completed"
 
-                    tracking_line = call.tracking_line
-                    biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
-                    result = classify_transcript(transcript.text, business_name=biz_name, call_date=call.call_date)
-                    call.classification = result.get("classification")
-                    call.summary = result.get("summary")
-                    call.customer_name = result.get("customer_name")
-                    call.booking_time = result.get("booking_time")
-                    call.booking_date = _parse_booking_date(result.get("booking_date"))
-                    call.status = "complete"
-                    db.session.commit()
+                if call.classification == "VOICEMAIL":
+                    call.call_outcome = "voicemail"
+
+                db.session.commit()
 
             except Exception as e:
                 logger.exception("Failed to process uploaded file (call_id=%s)", task["call_id"])
@@ -98,13 +93,11 @@ def index():
             flash("Please select at least one audio file.", "error")
             return redirect(url_for("upload.index"))
 
-        account = db.session.get(Account, current_user.id)
-        has_twilio = bool(account.twilio_account_sid and account.twilio_service_sid)
         has_openai = bool(current_app.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY"))
 
-        if not has_twilio and not has_openai:
+        if not has_openai:
             flash(
-                "Please connect Twilio or CallRail in Settings first.",
+                "OpenAI API key not configured. Please contact support.",
                 "error",
             )
             return redirect(url_for("settings.index"))
@@ -112,11 +105,6 @@ def index():
         upload_dir = os.path.join(current_app.instance_path, "uploads")
         os.makedirs(upload_dir, exist_ok=True)
         line_id = request.form.get("tracking_line_id", type=int)
-        base_url = request.host_url.rstrip("/")
-        # Railway terminates SSL at the proxy, so Flask sees http://.
-        # Twilio CI won't follow 301 redirects, so force https in prod.
-        if base_url.startswith("http://") and "localhost" not in base_url and "127.0.0.1" not in base_url:
-            base_url = base_url.replace("http://", "https://", 1)
 
         file_tasks = []
         skipped = 0
@@ -151,7 +139,6 @@ def index():
                 "call_id": call.id,
                 "temp_path": temp_path,
                 "temp_filename": temp_filename,
-                "base_url": base_url,
             })
 
         if not file_tasks:
@@ -165,7 +152,7 @@ def index():
         app = current_app._get_current_object()
         thread = threading.Thread(
             target=_process_uploads,
-            args=(file_tasks, current_user.id, has_twilio, app),
+            args=(file_tasks, current_user.id, app),
             daemon=True,
         )
         thread.start()

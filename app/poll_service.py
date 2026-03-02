@@ -8,7 +8,8 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from .models import db, Account, Call, TrackingLine
-from .twilio_service import fetch_recordings, fetch_calls, get_call_details, submit_recording_to_ci
+from .twilio_service import fetch_recordings, fetch_calls, get_call_details
+from .ai_classifier import transcribe_recording, classify_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +17,27 @@ logger = logging.getLogger(__name__)
 MIN_RECORDING_SECONDS = 3
 
 
+def _parse_booking_date(value):
+    """Parse an ISO 8601 booking_date string into a datetime, or None."""
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def _increment_usage(account):
+    """Increment the account's usage counter."""
+    if account.plan_calls_used is None:
+        account.plan_calls_used = 0
+    account.plan_calls_used += 1
+
+
 def poll_account(account, since):
-    """Fetch new recordings for an account and submit them to CI."""
+    """Fetch new recordings for an account and classify via OpenAI."""
     if not account.twilio_account_sid or not account.twilio_auth_token_encrypted:
         logger.info("Account %s: No Twilio credentials, skipping", account.id)
-        return 0
-
-    if not account.twilio_service_sid:
-        logger.info("Account %s: No CI service configured, skipping", account.id)
         return 0
 
     logger.info(
@@ -108,7 +122,7 @@ def poll_account(account, since):
         db.session.add(call)
         db.session.flush()  # Get the call ID
 
-        # Check usage limit before submitting to CI (costs $0.08/call)
+        # Check usage limit before processing (costs ~$0.03-0.04/call)
         if account.at_usage_limit:
             call.status = "limit_reached"
             logger.info(
@@ -116,23 +130,40 @@ def poll_account(account, since):
                 account.id, recording_sid,
             )
         else:
-            # Submit to Conversational Intelligence
+            # Transcribe + classify via OpenAI
             try:
-                transcript_sid = submit_recording_to_ci(
-                    account.twilio_account_sid,
-                    account.twilio_auth_token_encrypted,
-                    account.twilio_service_sid,
-                    recording_url,
+                transcript_text = transcribe_recording(
+                    recording_url + ".mp3",
+                    auth=(account.twilio_account_sid, account.twilio_auth_token_encrypted),
                 )
-                call.transcript_sid = transcript_sid
+                call.full_transcript = transcript_text
+
+                biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
+                result = classify_transcript(transcript_text, business_name=biz_name, call_date=call_date)
+
+                call.classification = result.get("classification")
+                call.confidence = result.get("confidence")
+                call.summary = result.get("summary")
+                call.service_type = result.get("service_type")
+                call.urgent = result.get("urgent", False)
+                call.customer_name = result.get("customer_name")
+                call.customer_address = result.get("customer_address")
+                call.booking_time = result.get("booking_time")
+                call.booking_date = _parse_booking_date(result.get("booking_date"))
+                call.analysed_at = datetime.now(timezone.utc)
+                call.status = "completed"
+
+                if call.classification == "VOICEMAIL":
+                    call.call_outcome = "voicemail"
+
+                _increment_usage(account)
                 logger.info(
-                    "Submitted recording %s → transcript %s",
-                    recording_sid,
-                    transcript_sid,
+                    "Recording %s classified: %s (confidence: %s)",
+                    recording_sid, call.classification, call.confidence,
                 )
             except Exception as e:
                 logger.error(
-                    "Failed to submit recording %s to CI: %s", recording_sid, e
+                    "Failed to process recording %s: %s", recording_sid, e
                 )
                 call.status = "failed"
 
@@ -307,10 +338,8 @@ def poll_short_answered_calls(account, since):
 
 
 def retry_failed_submissions(account):
-    """Re-submit failed CI submissions (up to 3 retries, Twilio calls only)."""
+    """Retry failed calls via OpenAI (up to 3 retries, Twilio calls only)."""
     if not account.twilio_account_sid or not account.twilio_auth_token_encrypted:
-        return 0
-    if not account.twilio_service_sid:
         return 0
 
     if account.at_usage_limit:
@@ -329,17 +358,35 @@ def retry_failed_submissions(account):
 
         call.retry_count = (call.retry_count or 0) + 1
         try:
-            transcript_sid = submit_recording_to_ci(
-                account.twilio_account_sid,
-                account.twilio_auth_token_encrypted,
-                account.twilio_service_sid,
-                call.recording_url,
+            transcript_text = transcribe_recording(
+                call.recording_url + ".mp3",
+                auth=(account.twilio_account_sid, account.twilio_auth_token_encrypted),
             )
-            call.transcript_sid = transcript_sid
-            call.status = "processing"
+            call.full_transcript = transcript_text
+
+            tracking_line = call.tracking_line
+            biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
+            result = classify_transcript(transcript_text, business_name=biz_name, call_date=call.call_date)
+
+            call.classification = result.get("classification")
+            call.confidence = result.get("confidence")
+            call.summary = result.get("summary")
+            call.service_type = result.get("service_type")
+            call.urgent = result.get("urgent", False)
+            call.customer_name = result.get("customer_name")
+            call.customer_address = result.get("customer_address")
+            call.booking_time = result.get("booking_time")
+            call.booking_date = _parse_booking_date(result.get("booking_date"))
+            call.analysed_at = datetime.now(timezone.utc)
+            call.status = "completed"
+
+            if call.classification == "VOICEMAIL":
+                call.call_outcome = "voicemail"
+
+            _increment_usage(account)
             logger.info(
-                "Retry %d succeeded for call %s → transcript %s",
-                call.retry_count, call.id, transcript_sid,
+                "Retry %d succeeded for call %s: %s",
+                call.retry_count, call.id, call.classification,
             )
         except Exception as e:
             logger.warning(
