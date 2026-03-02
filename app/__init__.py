@@ -34,7 +34,7 @@ def create_app():
     import pytz
 
     @app.template_filter('localtime')
-    def localtime_filter(value, fmt='%d %b %Y %H:%M'):
+    def localtime_filter(value, fmt='%A, %-d %B %Y at %-I:%M %p'):
         if value is None:
             return '\u2014'
         try:

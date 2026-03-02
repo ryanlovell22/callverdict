@@ -64,7 +64,9 @@ def process_pending_recordings(account):
             call.full_transcript = transcript_text
 
             # Classify the transcript
-            results = classify_transcript(transcript_text)
+            tracking_line = call.tracking_line
+            biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
+            results = classify_transcript(transcript_text, business_name=biz_name)
             call.classification = results.get("classification")
             call.confidence = results.get("confidence")
             call.summary = results.get("summary")
@@ -186,7 +188,8 @@ def backfill_callrail_calls(account, since):
         if transcription:
             # Transcript available — classify immediately
             try:
-                results = classify_transcript(transcription)
+                biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
+                results = classify_transcript(transcription, business_name=biz_name)
                 call.full_transcript = transcription
                 call.classification = results.get("classification")
                 call.confidence = results.get("confidence")
@@ -242,7 +245,9 @@ def retry_failed_callrail(account):
             call.full_transcript = transcript_text
 
             # Classify the transcript
-            results = classify_transcript(transcript_text)
+            tracking_line = call.tracking_line
+            biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
+            results = classify_transcript(transcript_text, business_name=biz_name)
             call.classification = results.get("classification")
             call.confidence = results.get("confidence")
             call.summary = results.get("summary")

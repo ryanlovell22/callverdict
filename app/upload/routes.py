@@ -58,7 +58,9 @@ def _process_uploads(file_tasks, account_id, has_twilio, app):
 
                     call.transcript = transcript.text
 
-                    result = classify_transcript(transcript.text)
+                    tracking_line = call.tracking_line
+                    biz_name = (tracking_line.label or tracking_line.partner_name) if tracking_line else None
+                    result = classify_transcript(transcript.text, business_name=biz_name)
                     call.classification = result.get("classification")
                     call.summary = result.get("summary")
                     call.customer_name = result.get("customer_name")

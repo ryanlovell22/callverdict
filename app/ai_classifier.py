@@ -131,17 +131,28 @@ def transcribe_recording(recording_url):
             os.unlink(tmp_path)
 
 
-def classify_transcript(transcript_text):
+def classify_transcript(transcript_text, business_name=None):
     """Classify a call transcript using GPT-4o-mini.
 
     Args:
         transcript_text: The full transcript text to classify.
+        business_name: Optional business/tradie name answering the calls.
+            When provided, helps the AI distinguish the tradie from the customer.
 
     Returns:
         Dict with classification, confidence, summary, service_type,
         urgent, customer_name, customer_address, booking_time.
     """
     client = _get_openai_client()
+
+    user_content = ""
+    if business_name:
+        user_content += (
+            f'The business answering these calls is "{business_name}". '
+            "If you see this name in the transcript, that person is the "
+            "TRADIE (the one answering), NOT the customer.\n\n"
+        )
+    user_content += f"Here is the call transcript:\n\n{transcript_text}"
 
     try:
         response = client.chat.completions.create(
@@ -157,7 +168,7 @@ def classify_transcript(transcript_text):
                 },
                 {
                     "role": "user",
-                    "content": f"Here is the call transcript:\n\n{transcript_text}",
+                    "content": user_content,
                 },
             ],
             response_format={"type": "json_object"},

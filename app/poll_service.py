@@ -236,7 +236,7 @@ def poll_short_answered_calls(account, since):
         # Only interested in short calls — longer ones already come in via
         # recordings in poll_account(). Using a generous threshold to avoid
         # missing edge cases where recording duration differs from call duration.
-        if duration > 15:
+        if duration > 20:
             continue
 
         # Dedup on twilio_call_sid
@@ -287,10 +287,9 @@ def poll_short_answered_calls(account, since):
             call_duration=duration,
             call_date=call_date,
             source="twilio",
-            call_outcome="answered",
+            call_outcome="missed",
             status="completed",
-            classification="NOT_BOOKED",
-            summary="Very short call — no recording available.",
+            summary="Short or unanswered call.",
         )
         db.session.add(call)
         new_count += 1
