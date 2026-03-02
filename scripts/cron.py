@@ -31,7 +31,6 @@ def migrate_short_calls():
         updated = Call.query.filter(
             Call.call_outcome == "answered",
             Call.call_duration <= 20,
-            Call.summary.like("Very short call%"),
         ).update(
             {
                 Call.call_outcome: "missed",
