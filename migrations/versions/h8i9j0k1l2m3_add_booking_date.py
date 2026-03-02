@@ -1,7 +1,7 @@
 """Add booking_date column to calls table
 
-Revision ID: e5f6g7h8i9j0
-Revises: d4e5f6g7h8i9
+Revision ID: h8i9j0k1l2m3
+Revises: g7h8i9j0k1l2
 Create Date: 2026-03-02 10:00:00.000000
 
 """
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e5f6g7h8i9j0'
-down_revision = 'd4e5f6g7h8i9'
+revision = 'h8i9j0k1l2m3'
+down_revision = 'g7h8i9j0k1l2'
 branch_labels = None
 depends_on = None
 
