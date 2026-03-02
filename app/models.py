@@ -13,6 +13,7 @@ class Account(UserMixin, db.Model):
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
     twilio_account_sid = db.Column(db.String(255))
     twilio_auth_token_encrypted = db.Column(db.Text)
     twilio_service_sid = db.Column(db.String(255))
@@ -53,33 +54,29 @@ class Account(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    @property
+    def at_usage_limit(self):
+        """True if account has reached their plan's call processing limit."""
+        if self.is_admin:
+            return False
+        if self.plan_calls_used is not None and self.plan_calls_limit is not None:
+            return self.plan_calls_used >= self.plan_calls_limit
+        return False
 
-class Partner(UserMixin, db.Model):
+
+class Partner(db.Model):
     __tablename__ = "partners"
 
     id = db.Column(db.Integer, primary_key=True)
     account_id = db.Column(db.Integer, db.ForeignKey("accounts.id"), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=True)
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
 
     tracking_lines = db.relationship("TrackingLine", backref="partner", lazy=True)
-
-    @property
-    def user_type(self):
-        return "partner"
-
-    def get_id(self):
-        return f"partner:{self.id}"
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password, method="pbkdf2:sha256")
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
 
 
 class TrackingLine(db.Model):

@@ -5,6 +5,20 @@
 <h2>Dashboard</h2>
 <p style="color: var(--pico-muted-color); margin-top: -1rem;">{{ week_label }}</p>
 
+{% if current_user.user_type == 'account' and not current_user.is_admin %}
+    {% if current_user.at_usage_limit %}
+    <div class="usage-banner danger">
+        You've reached your call limit ({{ current_user.plan_calls_used }}/{{ current_user.plan_calls_limit }}). New calls won't be analysed until you upgrade.
+        <a href="{{ url_for('billing.index') }}">Upgrade now</a>
+    </div>
+    {% elif current_user.plan_calls_limit and current_user.plan_calls_used >= (current_user.plan_calls_limit * 0.8) %}
+    <div class="usage-banner warning">
+        You're approaching your call limit ({{ current_user.plan_calls_used }}/{{ current_user.plan_calls_limit }}). Consider upgrading.
+        <a href="{{ url_for('billing.index') }}">View plans</a>
+    </div>
+    {% endif %}
+{% endif %}
+
 <!-- Stats Bar -->
 <div class="grid">
     <article>
@@ -117,6 +131,8 @@
                         <mark class="badge-voicemail">Voicemail</mark>
                     {% elif call.classification == 'NOT_BOOKED' %}
                         <mark class="badge-not-booked">Not Booked</mark>
+                    {% elif call.status == 'limit_reached' %}
+                        <mark class="badge-limit">Limit Reached</mark>
                     {% elif call.status == 'processing' %}
                         <mark class="badge-processing">Processing</mark>
                     {% elif call.status == 'failed' %}
@@ -164,7 +180,7 @@
                 {% if setup_done.has_partners %}&#9745;{% else %}&#9744;{% endif %}
                 <strong>2. Add your partners</strong>
                 {% if not setup_done.has_partners %}
-                &rarr; <a href="{{ url_for('partners.index') }}">Create logins for your contractors</a>
+                &rarr; <a href="{{ url_for('partners.index') }}">Add your contractors</a>
                 {% else %}
                 &mdash; Done!
                 {% endif %}

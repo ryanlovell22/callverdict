@@ -68,6 +68,12 @@ def process_pending_recordings(account):
             logger.warning("Call %s has no recording URL, marking failed", call.id)
             continue
 
+        # Check usage limit before transcribing (costs money)
+        if account.at_usage_limit:
+            call.status = "limit_reached"
+            logger.info("Account %s at limit, call %s set to limit_reached", account.id, call.id)
+            continue
+
         try:
             # Transcribe the recording
             transcript_text = transcribe_recording(call.recording_url)
@@ -180,7 +186,24 @@ def backfill_callrail_calls(account, since):
             new_count += 1
             continue
 
-        # Answered call
+        # Answered call — check limit before doing costly classification
+        if account.at_usage_limit:
+            call = Call(
+                account_id=account.id,
+                tracking_line_id=tracking_line.id if tracking_line else None,
+                callrail_call_id=call_id,
+                caller_number=customer_phone,
+                call_duration=duration,
+                call_date=call_date,
+                recording_url=recording_url,
+                source="callrail",
+                call_outcome="answered",
+                status="limit_reached",
+            )
+            db.session.add(call)
+            new_count += 1
+            continue
+
         call = Call(
             account_id=account.id,
             tracking_line_id=tracking_line.id if tracking_line else None,
@@ -235,6 +258,9 @@ def backfill_callrail_calls(account, since):
 
 def retry_failed_callrail(account):
     """Re-process failed CallRail calls (up to 3 retries)."""
+    if account.at_usage_limit:
+        return 0
+
     failed_calls = Call.query.filter_by(
         account_id=account.id,
         source="callrail",

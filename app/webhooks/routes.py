@@ -22,16 +22,6 @@ def _parse_booking_date(value):
         return None
 
 
-def _check_usage_limit(account):
-    """Check if account has reached their call processing limit.
-    Returns True if limit reached, False if OK to process.
-    """
-    if account.plan_calls_used is not None and account.plan_calls_limit is not None:
-        if account.plan_calls_used >= account.plan_calls_limit:
-            return True
-    return False
-
-
 def _increment_usage(account):
     """Increment the account's usage counter."""
     if account.plan_calls_used is None:
@@ -62,7 +52,7 @@ def twilio_ci_callback():
         return jsonify({"error": "Account not configured"}), 400
 
     # Check usage limit
-    if _check_usage_limit(account):
+    if account.at_usage_limit:
         call.status = "limit_reached"
         db.session.commit()
         logger.info("Account %s has reached usage limit", account.id)
@@ -153,11 +143,6 @@ def callrail_callback():
     if not account:
         return jsonify({"error": "Account not found"}), 400
 
-    # Check usage limit
-    if _check_usage_limit(account):
-        logger.info("Account %s has reached usage limit", account.id)
-        return jsonify({"status": "limit_reached"}), 200
-
     # Dedup: check callrail_call_id doesn't already exist for this account
     existing = Call.query.filter_by(
         account_id=account.id, callrail_call_id=str(call_id)
@@ -179,9 +164,12 @@ def callrail_callback():
         except (ValueError, TypeError):
             call_date = datetime.now(timezone.utc)
 
+    # Check usage limit (after dedup/validation, before costly processing)
+    at_limit = account.at_usage_limit
+
     # Determine call outcome and status
     if not answered or not recording_url:
-        # Missed call — no recording to process
+        # Missed call — no recording to process. Save even at limit (no cost).
         call = Call(
             account_id=account.id,
             tracking_line_id=tracking_line.id,
@@ -192,15 +180,35 @@ def callrail_callback():
             recording_url=recording_url,
             source="callrail",
             call_outcome="missed",
-            status="completed",
+            status="limit_reached" if at_limit else "completed",
         )
         db.session.add(call)
-        _increment_usage(account)
+        if not at_limit:
+            _increment_usage(account)
         db.session.commit()
-        logger.info("CallRail missed call %s saved", call_id)
+        logger.info("CallRail missed call %s saved (limit_reached=%s)", call_id, at_limit)
         return jsonify({"status": "ok"}), 200
 
     # Answered call with a recording
+    if at_limit:
+        # Save the call but skip classification (costs money)
+        call = Call(
+            account_id=account.id,
+            tracking_line_id=tracking_line.id,
+            callrail_call_id=str(call_id),
+            caller_number=customer_phone,
+            call_duration=duration,
+            call_date=call_date,
+            recording_url=recording_url,
+            source="callrail",
+            call_outcome="answered",
+            status="limit_reached",
+        )
+        db.session.add(call)
+        db.session.commit()
+        logger.info("CallRail call %s saved as limit_reached", call_id)
+        return jsonify({"status": "limit_reached"}), 200
+
     call = Call(
         account_id=account.id,
         tracking_line_id=tracking_line.id,

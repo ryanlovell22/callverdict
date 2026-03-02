@@ -70,6 +70,8 @@
             </fieldset>
         </form>
         {% endif %}
+        {% elif call.status == 'limit_reached' %}
+        <p>This call wasn't analysed because your plan limit was reached. <a href="{{ url_for('billing.index') }}">Upgrade your plan</a> to analyse this call.</p>
         {% elif call.status == 'processing' %}
         <p>Analysis in progress...</p>
         {% elif call.status == 'failed' %}

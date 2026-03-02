@@ -108,25 +108,33 @@ def poll_account(account, since):
         db.session.add(call)
         db.session.flush()  # Get the call ID
 
-        # Submit to Conversational Intelligence
-        try:
-            transcript_sid = submit_recording_to_ci(
-                account.twilio_account_sid,
-                account.twilio_auth_token_encrypted,
-                account.twilio_service_sid,
-                recording_url,
-            )
-            call.transcript_sid = transcript_sid
+        # Check usage limit before submitting to CI (costs $0.08/call)
+        if account.at_usage_limit:
+            call.status = "limit_reached"
             logger.info(
-                "Submitted recording %s → transcript %s",
-                recording_sid,
-                transcript_sid,
+                "Account %s at limit, recording %s saved as limit_reached",
+                account.id, recording_sid,
             )
-        except Exception as e:
-            logger.error(
-                "Failed to submit recording %s to CI: %s", recording_sid, e
-            )
-            call.status = "failed"
+        else:
+            # Submit to Conversational Intelligence
+            try:
+                transcript_sid = submit_recording_to_ci(
+                    account.twilio_account_sid,
+                    account.twilio_auth_token_encrypted,
+                    account.twilio_service_sid,
+                    recording_url,
+                )
+                call.transcript_sid = transcript_sid
+                logger.info(
+                    "Submitted recording %s → transcript %s",
+                    recording_sid,
+                    transcript_sid,
+                )
+            except Exception as e:
+                logger.error(
+                    "Failed to submit recording %s to CI: %s", recording_sid, e
+                )
+                call.status = "failed"
 
         new_count += 1
 
@@ -303,6 +311,9 @@ def retry_failed_submissions(account):
     if not account.twilio_account_sid or not account.twilio_auth_token_encrypted:
         return 0
     if not account.twilio_service_sid:
+        return 0
+
+    if account.at_usage_limit:
         return 0
 
     failed_calls = Call.query.filter_by(
