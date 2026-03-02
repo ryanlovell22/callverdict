@@ -253,6 +253,7 @@ def call_recording(call_id):
 def export_csv():
     """Export filtered calls as CSV."""
     line_id = request.args.get("line", type=int)
+    partner_id = request.args.get("partner", type=int)
     classification = request.args.get("classification")
     date_from = request.args.get("date_from")
     date_to = request.args.get("date_to")
@@ -277,6 +278,13 @@ def export_csv():
         account_id = current_user.id
         query = Call.query.filter_by(account_id=account_id)
 
+    if partner_id:
+        partner_line_ids_filter = [
+            l.id for l in TrackingLine.query.filter_by(
+                account_id=account_id, partner_id=partner_id, active=True
+            ).all()
+        ]
+        query = query.filter(Call.tracking_line_id.in_(partner_line_ids_filter))
     if line_id:
         query = query.filter_by(tracking_line_id=line_id)
     if classification and classification in ("JOB_BOOKED", "NOT_BOOKED"):
@@ -294,13 +302,32 @@ def export_csv():
 
     calls = query.order_by(Call.call_date.desc()).all()
 
+    # Resolve the user's timezone for date formatting
+    import pytz
+    try:
+        if current_user.user_type == "partner":
+            account = db.session.get(Account, current_user.account_id)
+            tz_name = account.timezone if account else "Australia/Adelaide"
+        else:
+            tz_name = current_user.timezone or "Australia/Adelaide"
+        local_tz = pytz.timezone(tz_name)
+    except Exception:
+        local_tz = pytz.timezone("Australia/Adelaide")
+
+    def _local_date(dt):
+        if dt is None:
+            return ""
+        if dt.tzinfo is None:
+            dt = pytz.utc.localize(dt)
+        return dt.astimezone(local_tz).strftime("%-d %b %Y %-I:%M %p")
+
     # Build CSV
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["Date", "Line", "Caller", "Customer", "Duration", "Classification", "Booking Time", "Summary"])
     for call in calls:
         writer.writerow([
-            call.call_date.strftime('%d %b %Y %H:%M') if call.call_date else '',
+            _local_date(call.call_date),
             call.tracking_line.label if call.tracking_line else '',
             call.caller_number or '',
             call.customer_name or '',
