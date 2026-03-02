@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "FLASK_APP='app:create_app()' flask db upgrade && gunicorn 'app:create_app()'"
+startCommand = "FLASK_APP='app:create_app()' flask db upgrade && gunicorn --timeout 120 'app:create_app()'"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 healthcheckPath = "/health"
