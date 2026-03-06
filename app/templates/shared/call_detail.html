@@ -20,57 +20,48 @@
     <main class="container" style="max-width: 800px;">
         <h2>Call Detail</h2>
 
-        <article>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div>
-                    <strong>Date:</strong>
-                    <p>{{ call.call_date.strftime('%d %b %Y %H:%M') if call.call_date else '—' }}</p>
-                </div>
-                <div>
-                    <strong>Duration:</strong>
-                    <p>{{ '%d:%02d'|format(call.call_duration // 60, call.call_duration % 60) if call.call_duration else '—' }}</p>
-                </div>
-                <div>
-                    <strong>Classification:</strong>
-                    <p>
-                        {% if call.classification == 'JOB_BOOKED' %}
-                        <mark class="badge-booked">Job Booked</mark>
-                        {% elif call.classification == 'NOT_BOOKED' %}
-                        <mark class="badge-not-booked">Not Booked</mark>
-                        {% elif call.classification == 'VOICEMAIL' %}
-                        <mark class="badge-voicemail">Voicemail</mark>
-                        {% else %}
-                        {{ call.status | capitalize }}
-                        {% endif %}
-                        {% if call.confidence %}
-                        <small>({{ (call.confidence * 100)|int }}% confidence)</small>
-                        {% endif %}
-                    </p>
-                </div>
-                <div>
-                    <strong>Service Type:</strong>
-                    <p>{{ call.service_type or '—' }}</p>
-                </div>
-                {% if call.customer_name %}
-                <div>
-                    <strong>Customer:</strong>
-                    <p>{{ call.customer_name }}</p>
-                </div>
-                {% endif %}
-                {% if call.booking_time %}
-                <div>
-                    <strong>Booking Time:</strong>
-                    <p>{{ call.booking_time }}</p>
-                </div>
-                {% endif %}
-                {% if call.customer_address %}
-                <div>
-                    <strong>Address:</strong>
-                    <p>{{ call.customer_address }}</p>
-                </div>
-                {% endif %}
-            </div>
-        </article>
+        <div class="grid" style="margin-top: 1rem;">
+            <article class="detail-card detail-card-info">
+                <h4>Call Info</h4>
+                <table>
+                    <tr><td><strong>Date</strong></td><td>{{ call.call_date.strftime('%d %b %Y %H:%M') if call.call_date else '—' }}</td></tr>
+                    <tr><td><strong>Duration</strong></td><td>{{ '%d:%02d'|format(call.call_duration // 60, call.call_duration % 60) if call.call_duration else '—' }}</td></tr>
+                    {% if call.customer_name %}
+                    <tr><td><strong>Customer</strong></td><td>{{ call.customer_name }}</td></tr>
+                    {% endif %}
+                    <tr><td><strong>Service Type</strong></td><td>{{ call.service_type or '—' }}</td></tr>
+                </table>
+            </article>
+
+            <article class="detail-card detail-card-analysis">
+                <h4>AI Analysis</h4>
+                <table>
+                    <tr>
+                        <td><strong>Classification</strong></td>
+                        <td>
+                            {% if call.classification == 'JOB_BOOKED' %}
+                            <mark class="badge-booked">Job Booked</mark>
+                            {% elif call.classification == 'NOT_BOOKED' %}
+                            <mark class="badge-not-booked">Not Booked</mark>
+                            {% elif call.classification == 'VOICEMAIL' %}
+                            <mark class="badge-voicemail">Voicemail</mark>
+                            {% else %}
+                            {{ call.status | capitalize }}
+                            {% endif %}
+                            {% if call.confidence %}
+                            <small style="color: var(--pico-muted-color); margin-left: 0.5rem;">{{ (call.confidence * 100)|int }}% confidence</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if call.booking_time %}
+                    <tr><td><strong>Booking Time</strong></td><td>{{ call.booking_time }}</td></tr>
+                    {% endif %}
+                    {% if call.customer_address %}
+                    <tr><td><strong>Address</strong></td><td>{{ call.customer_address }}</td></tr>
+                    {% endif %}
+                </table>
+            </article>
+        </div>
 
         {% if call.summary %}
         <article>

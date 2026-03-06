@@ -17,22 +17,26 @@
 
     <main class="container">
         <!-- Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-            <article style="text-align: center;">
-                <h3 style="margin-bottom: 0;">{{ stats.total }}</h3>
-                <small>Total Calls</small>
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <article class="stat-card stat-total">
+                <span class="stat-icon">&#128222;</span>
+                <h3 data-count="{{ stats.total }}">{{ stats.total }}</h3>
+                <p>Total Calls</p>
             </article>
-            <article style="text-align: center;">
-                <h3 style="margin-bottom: 0; color: var(--pico-color-green-500, green);">{{ stats.booked }}</h3>
-                <small>Jobs Booked</small>
+            <article class="stat-card stat-booked">
+                <span class="stat-icon">&#10003;</span>
+                <h3 data-count="{{ stats.booked }}" style="color: #51cf66;">{{ stats.booked }}</h3>
+                <p>Jobs Booked</p>
             </article>
-            <article style="text-align: center;">
-                <h3 style="margin-bottom: 0; color: var(--pico-color-red-500, red);">{{ stats.not_booked }}</h3>
-                <small>Not Booked</small>
+            <article class="stat-card stat-not-booked">
+                <span class="stat-icon">&#10007;</span>
+                <h3 data-count="{{ stats.not_booked }}" style="color: #ff6b6b;">{{ stats.not_booked }}</h3>
+                <p>Not Booked</p>
             </article>
-            <article style="text-align: center;">
-                <h3 style="margin-bottom: 0;">{{ stats.rate }}%</h3>
-                <small>Conversion Rate</small>
+            <article class="stat-card stat-conversion">
+                <span class="stat-icon">&#9889;</span>
+                <h3 data-count="{{ stats.rate }}" data-suffix="%" style="color: #b197fc;">{{ stats.rate }}%</h3>
+                <p>Conversion Rate</p>
             </article>
         </div>
 
@@ -56,7 +60,7 @@
                 </thead>
                 <tbody>
                     {% for call in calls %}
-                    <tr>
+                    <tr class="{% if call.classification == 'JOB_BOOKED' %}row-booked{% elif call.classification == 'NOT_BOOKED' %}row-not-booked{% endif %}">
                         <td>{{ call.call_date.strftime('%d %b %Y %H:%M') if call.call_date else '—' }}</td>
                         {% if dashboard.tracking_lines | length > 1 %}
                         <td>{{ call.tracking_line.label if call.tracking_line else '—' }}</td>
@@ -99,5 +103,30 @@
     <footer class="container">
         <hr>
     </footer>
+
+    <script>
+    (function() {
+        var counters = document.querySelectorAll('[data-count]');
+        if (!counters.length) return;
+        var duration = 600;
+        counters.forEach(function(el) {
+            var target = parseFloat(el.getAttribute('data-count')) || 0;
+            var decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+            var prefix = el.getAttribute('data-prefix') || '';
+            var suffix = el.getAttribute('data-suffix') || '';
+            el.textContent = prefix + (0).toFixed(decimals) + suffix;
+            var start = null;
+            function step(ts) {
+                if (!start) start = ts;
+                var progress = Math.min((ts - start) / duration, 1);
+                var ease = 1 - Math.pow(1 - progress, 3);
+                var current = ease * target;
+                el.textContent = prefix + current.toFixed(decimals) + suffix;
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+    })();
+    </script>
 </body>
 </html>

@@ -135,6 +135,21 @@ table[role="grid"] tbody tr:hover {
     margin-top: 0.75rem;
 }
 
+/* Call detail cards */
+.detail-card {
+    border-left: 3px solid var(--pico-muted-border-color);
+}
+.detail-card-info {
+    border-left-color: #63b3ed;
+}
+.detail-card-analysis {
+    border-left-color: #51cf66;
+}
+.detail-card h4 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
 /* Usage limit warning banners */
 .usage-banner {
     padding: 0.75rem 1rem;

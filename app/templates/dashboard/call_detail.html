@@ -7,7 +7,7 @@
 <a href="{{ url_for('dashboard.index') }}">&larr; Back to dashboard</a>
 
 <div class="grid" style="margin-top: 1rem;">
-    <article>
+    <article class="detail-card detail-card-info">
         <h4>Call Info</h4>
         <table>
             <tr><td><strong>Date</strong></td><td>{{ call.call_date|localtime }}</td></tr>
@@ -18,7 +18,7 @@
         </table>
     </article>
 
-    <article>
+    <article class="detail-card detail-card-analysis">
         <h4>AI Analysis</h4>
         {% if call.status == 'completed' %}
         <table>
