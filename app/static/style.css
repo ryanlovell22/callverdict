@@ -1,16 +1,46 @@
 /* CallVerdict — minimal custom styles */
 
 /* Stats cards */
-.grid article {
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 992px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 576px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.stat-card {
     text-align: center;
+    padding: 1.25rem 0.75rem;
+    border-top: 3px solid var(--pico-muted-border-color);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.grid article h3 {
+.stat-card.stat-total     { border-top-color: #63b3ed; }
+.stat-card.stat-booked    { border-top-color: #51cf66; }
+.stat-card.stat-not-booked { border-top-color: #ff6b6b; }
+.stat-card.stat-missed    { border-top-color: #ffa94d; }
+.stat-card.stat-conversion { border-top-color: #b197fc; }
+.stat-card.stat-value     { border-top-color: #63e6be; }
+
+.stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    display: block;
+    opacity: 0.7;
+}
+
+.stat-card h3 {
     margin-bottom: 0;
     font-size: 2rem;
 }
 
-.grid article p {
+.stat-card p {
     margin-top: 0.25rem;
     color: var(--pico-muted-color);
     font-size: 0.875rem;
@@ -43,7 +73,15 @@ fieldset[role="group"] {
     margin-bottom: 0;
 }
 
-/* Status badges (dark-mode friendly) */
+/* Status badges — pill style (dark-mode friendly) */
+mark[class^="badge-"] {
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
 .badge-booked     { background: rgba(40, 167, 69, 0.2);  color: #51cf66; }
 .badge-not-booked { background: rgba(220, 53, 69, 0.2);  color: #ff6b6b; }
 .badge-voicemail  { background: rgba(255, 165, 0, 0.2);  color: #ffa94d; }
@@ -51,6 +89,51 @@ fieldset[role="group"] {
 .badge-processing { background: rgba(255, 193, 7, 0.2);  color: #ffd43b; }
 .badge-failed     { background: rgba(220, 53, 69, 0.2);  color: #ff6b6b; }
 .badge-limit      { background: rgba(255, 165, 0, 0.2);  color: #ffa94d; }
+
+/* Colour-tinted table rows */
+tr.row-booked     { background: rgba(40, 167, 69, 0.06); }
+tr.row-not-booked { background: rgba(220, 53, 69, 0.04); }
+tr.row-missed     { background: rgba(255, 165, 0, 0.04); }
+
+/* Table row hover */
+table[role="grid"] tbody tr {
+    transition: background 0.15s ease;
+}
+table[role="grid"] tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Filter panel */
+.filter-panel summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0.5rem 0;
+}
+.filter-panel summary::-webkit-details-marker { display: none; }
+.filter-panel summary::before {
+    content: "\25B6";
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+.filter-panel[open] summary::before {
+    transform: rotate(90deg);
+}
+.filter-count {
+    background: var(--pico-primary);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.5rem;
+    font-weight: 700;
+}
+.filter-panel .grid {
+    margin-top: 0.75rem;
+}
 
 /* Usage limit warning banners */
 .usage-banner {

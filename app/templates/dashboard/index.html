@@ -38,80 +38,99 @@
 {% endif %}
 
 <!-- Stats Bar -->
-<div class="grid">
-    <article>
-        <h3>{{ stats.total }}</h3>
+<div class="stats-grid">
+    <article class="stat-card stat-total">
+        <span class="stat-icon">&#128222;</span>
+        <h3 data-count="{{ stats.total }}">{{ stats.total }}</h3>
         <p>Total Calls</p>
     </article>
-    <article>
-        <h3 style="color: var(--pico-color-green-500, green);">{{ stats.booked }}</h3>
+    <article class="stat-card stat-booked">
+        <span class="stat-icon">&#10003;</span>
+        <h3 data-count="{{ stats.booked }}" style="color: #51cf66;">{{ stats.booked }}</h3>
         <p>Booked</p>
     </article>
-    <article>
-        <h3 style="color: var(--pico-color-red-500, red);">{{ stats.not_booked }}</h3>
+    <article class="stat-card stat-not-booked">
+        <span class="stat-icon">&#10007;</span>
+        <h3 data-count="{{ stats.not_booked }}" style="color: #ff6b6b;">{{ stats.not_booked }}</h3>
         <p>Not Booked</p>
     </article>
-    <article>
-        <h3 style="color: var(--pico-color-orange-500, orange);">{{ stats.missed }}</h3>
+    <article class="stat-card stat-missed">
+        <span class="stat-icon">&#128284;</span>
+        <h3 data-count="{{ stats.missed }}" style="color: #ffa94d;">{{ stats.missed }}</h3>
         <p>Missed Calls</p>
     </article>
-    <article>
-        <h3>{{ stats.rate }}%</h3>
+    <article class="stat-card stat-conversion">
+        <span class="stat-icon">&#9889;</span>
+        <h3 data-count="{{ stats.rate }}" data-suffix="%" style="color: #b197fc;">{{ stats.rate }}%</h3>
         <p>Conversion</p>
     </article>
-    <article>
-        <h3>${{ "%.2f"|format(stats.total_value) }}</h3>
+    <article class="stat-card stat-value">
+        <span class="stat-icon">&#128176;</span>
+        <h3 data-count="{{ stats.total_value }}" data-prefix="$" data-decimals="2" style="color: #63e6be;">${{ "%.2f"|format(stats.total_value) }}</h3>
         <p>{% if current_user.user_type == 'partner' %}Lead Cost{% else %}Lead Value{% endif %}</p>
     </article>
 </div>
 
 <!-- Filters -->
-<form method="get" class="grid">
-    <label>
-        Tracking Line
-        <select name="line">
-            <option value="">All lines</option>
-            {% for line in lines %}
-            <option value="{{ line.id }}" {% if filters.line == line.id %}selected{% endif %}>
-                {{ line.label or line.twilio_phone_number }}
-            </option>
-            {% endfor %}
-        </select>
-    </label>
-    {% if partners %}
-    <label>
-        Partner
-        <select name="partner">
-            <option value="">All partners</option>
-            {% for p in partners %}
-            <option value="{{ p.id }}" {% if filters.partner == p.id %}selected{% endif %}>
-                {{ p.name }}
-            </option>
-            {% endfor %}
-        </select>
-    </label>
-    {% endif %}
-    <label>
-        Classification
-        <select name="classification">
-            <option value="">All</option>
-            <option value="JOB_BOOKED" {% if filters.classification == 'JOB_BOOKED' %}selected{% endif %}>Booked</option>
-            <option value="NOT_BOOKED" {% if filters.classification == 'NOT_BOOKED' %}selected{% endif %}>Not Booked</option>
-        </select>
-    </label>
-    <label>
-        From
-        <input type="date" name="date_from" value="{{ filters.date_from }}">
-    </label>
-    <label>
-        To
-        <input type="date" name="date_to" value="{{ filters.date_to }}">
-    </label>
-    <div>
-        <button type="submit">Apply</button>
-        <a href="{{ url_for('dashboard.index') }}" role="button" class="outline">Clear</a>
-    </div>
-</form>
+{% set active_filters = [] %}
+{% if filters.line %}{% set _ = active_filters.append(1) %}{% endif %}
+{% if filters.partner %}{% set _ = active_filters.append(1) %}{% endif %}
+{% if filters.classification %}{% set _ = active_filters.append(1) %}{% endif %}
+{% if filters.date_from %}{% set _ = active_filters.append(1) %}{% endif %}
+{% if filters.date_to %}{% set _ = active_filters.append(1) %}{% endif %}
+
+<details class="filter-panel" {% if active_filters %}open{% endif %}>
+    <summary>
+        Filters
+        {% if active_filters %}<span class="filter-count">{{ active_filters|length }}</span>{% endif %}
+    </summary>
+    <form method="get" class="grid">
+        <label>
+            Tracking Line
+            <select name="line">
+                <option value="">All lines</option>
+                {% for line in lines %}
+                <option value="{{ line.id }}" {% if filters.line == line.id %}selected{% endif %}>
+                    {{ line.label or line.twilio_phone_number }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+        {% if partners %}
+        <label>
+            Partner
+            <select name="partner">
+                <option value="">All partners</option>
+                {% for p in partners %}
+                <option value="{{ p.id }}" {% if filters.partner == p.id %}selected{% endif %}>
+                    {{ p.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+        {% endif %}
+        <label>
+            Classification
+            <select name="classification">
+                <option value="">All</option>
+                <option value="JOB_BOOKED" {% if filters.classification == 'JOB_BOOKED' %}selected{% endif %}>Booked</option>
+                <option value="NOT_BOOKED" {% if filters.classification == 'NOT_BOOKED' %}selected{% endif %}>Not Booked</option>
+            </select>
+        </label>
+        <label>
+            From
+            <input type="date" name="date_from" value="{{ filters.date_from }}">
+        </label>
+        <label>
+            To
+            <input type="date" name="date_to" value="{{ filters.date_to }}">
+        </label>
+        <div>
+            <button type="submit">Apply</button>
+            <a href="{{ url_for('dashboard.index') }}" role="button" class="outline">Clear</a>
+        </div>
+    </form>
+</details>
 
 <p><a href="{{ url_for('dashboard.export_csv', **filters) }}">Export CSV</a></p>
 
@@ -134,7 +153,7 @@
         </thead>
         <tbody>
             {% for call in calls %}
-            <tr>
+            <tr class="{% if call.call_outcome == 'missed' %}row-missed{% elif call.classification == 'JOB_BOOKED' %}row-booked{% elif call.classification == 'NOT_BOOKED' %}row-not-booked{% endif %}">
                 <td>{{ call.call_date|localtime }}</td>
                 <td>{{ call.tracking_line.label if call.tracking_line else '—' }}</td>
                 <td>{{ call.caller_number or '—' }}</td>
@@ -183,4 +202,30 @@
         <p>No calls found for this period.</p>
     </article>
 {% endif %}
+
+<!-- Animated counters -->
+<script>
+(function() {
+    var counters = document.querySelectorAll('[data-count]');
+    if (!counters.length) return;
+    var duration = 600;
+    counters.forEach(function(el) {
+        var target = parseFloat(el.getAttribute('data-count')) || 0;
+        var decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+        var prefix = el.getAttribute('data-prefix') || '';
+        var suffix = el.getAttribute('data-suffix') || '';
+        el.textContent = prefix + (0).toFixed(decimals) + suffix;
+        var start = null;
+        function step(ts) {
+            if (!start) start = ts;
+            var progress = Math.min((ts - start) / duration, 1);
+            var ease = 1 - Math.pow(1 - progress, 3);
+            var current = ease * target;
+            el.textContent = prefix + current.toFixed(decimals) + suffix;
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+})();
+</script>
 {% endblock %}
