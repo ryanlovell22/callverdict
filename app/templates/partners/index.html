@@ -12,7 +12,8 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Cost/Lead</th>
+                <th>Per Booking</th>
+                <th>Per Call</th>
                 <th>Assigned Lines</th>
                 <th>Created</th>
                 <th>Proof Links</th>
@@ -23,7 +24,8 @@
             {% for partner in partners %}
             <tr>
                 <td>{{ partner.name }}</td>
-                <td>${{ "%.2f"|format(partner.cost_per_lead) if partner.cost_per_lead else '0.00' }}</td>
+                <td>{{ '$%.2f'|format(partner.cost_per_lead) if partner.cost_per_lead else '—' }}</td>
+                <td>{{ '$%.2f'|format(partner.cost_per_call) if partner.cost_per_call else '—' }}</td>
                 <td>{{ partner.tracking_lines | length }}</td>
                 <td>{{ partner.created_at.strftime('%d %b %Y') if partner.created_at else '—' }}</td>
                 <td><a href="{{ url_for('dashboard.shared_links') }}">Manage</a></td>

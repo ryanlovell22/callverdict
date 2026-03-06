@@ -87,13 +87,25 @@ def index():
     answered = booked + not_booked
     rate = round(booked / answered * 100, 1) if answered > 0 else 0
 
-    # Lead value via DB aggregate (uses partner's cost_per_lead)
-    total_value = db.session.query(
+    # Lead value: per-booking value (JOB_BOOKED calls) + per-call value (all answered calls)
+    booking_value = db.session.query(
         func.coalesce(func.sum(Partner.cost_per_lead), 0)
     ).join(TrackingLine, TrackingLine.partner_id == Partner.id
     ).join(Call, Call.tracking_line_id == TrackingLine.id).filter(
         Call.id.in_(query.filter(Call.classification == "JOB_BOOKED").with_entities(Call.id))
     ).scalar()
+
+    call_value = db.session.query(
+        func.coalesce(func.sum(Partner.cost_per_call), 0)
+    ).join(TrackingLine, TrackingLine.partner_id == Partner.id
+    ).join(Call, Call.tracking_line_id == TrackingLine.id).filter(
+        Call.id.in_(query.filter(
+            Call.call_outcome == "answered",
+            Call.status == "completed",
+        ).with_entities(Call.id))
+    ).scalar()
+
+    total_value = booking_value + call_value
 
     # Paginate the table query (all calls including missed)
     pagination = query.order_by(Call.call_date.desc()).paginate(page=page, per_page=50, error_out=False)

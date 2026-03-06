@@ -140,6 +140,7 @@ def add_partner():
     data = request.get_json()
     name = (data.get("name") or "").strip()
     cost_per_lead = data.get("cost_per_lead", 0) or 0
+    cost_per_call = data.get("cost_per_call", 0) or 0
 
     if not name:
         return jsonify({"error": "Partner name is required."}), 400
@@ -148,6 +149,7 @@ def add_partner():
         account_id=current_user.id,
         name=name,
         cost_per_lead=cost_per_lead,
+        cost_per_call=cost_per_call,
     )
     db.session.add(partner)
     db.session.commit()

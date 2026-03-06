@@ -9,9 +9,24 @@
         <label for="name">Name</label>
         <input type="text" id="name" name="name" value="{{ partner.name if partner else '' }}" placeholder="e.g. John's Locksmith" required autocomplete="off">
 
-        <label for="cost_per_lead">Cost per Lead ($)</label>
-        <input type="number" id="cost_per_lead" name="cost_per_lead" step="0.01" min="0"
-               value="{{ partner.cost_per_lead if partner and partner.cost_per_lead else '50.00' }}">
+        <fieldset>
+            <legend>Pricing</legend>
+            <p style="color: var(--pico-muted-color); font-size: 0.875rem; margin-top: -0.5rem;">
+                Fill in one or both depending on how you charge this partner.
+            </p>
+
+            <label for="cost_per_lead">Per booked job ($)</label>
+            <input type="number" id="cost_per_lead" name="cost_per_lead" step="0.01" min="0"
+                   value="{{ '%.2f'|format(partner.cost_per_lead) if partner and partner.cost_per_lead else '' }}"
+                   placeholder="e.g. 50.00">
+            <small style="color: var(--pico-muted-color);">Charged for each call classified as a booked job.</small>
+
+            <label for="cost_per_call" style="margin-top: 1rem;">Per call ($)</label>
+            <input type="number" id="cost_per_call" name="cost_per_call" step="0.01" min="0"
+                   value="{{ '%.2f'|format(partner.cost_per_call) if partner and partner.cost_per_call else '' }}"
+                   placeholder="e.g. 10.00">
+            <small style="color: var(--pico-muted-color);">Charged for every answered call, regardless of outcome.</small>
+        </fieldset>
 
         <button type="submit">{{ 'Save' if partner else 'Create Partner' }}</button>
         <a href="{{ url_for('partners.index') }}" role="button" class="outline">Cancel</a>

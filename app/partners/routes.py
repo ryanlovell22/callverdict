@@ -22,7 +22,8 @@ def index():
 def add():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        cost_per_lead = request.form.get("cost_per_lead", 0) or 0
+        cost_per_lead = request.form.get("cost_per_lead") or 0
+        cost_per_call = request.form.get("cost_per_call") or 0
 
         if not name:
             flash("Name is required.", "error")
@@ -32,6 +33,7 @@ def add():
             account_id=current_user.id,
             name=name,
             cost_per_lead=cost_per_lead,
+            cost_per_call=cost_per_call,
         )
         db.session.add(partner)
         db.session.commit()
@@ -52,7 +54,8 @@ def edit(partner_id):
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        cost_per_lead = request.form.get("cost_per_lead", 0) or 0
+        cost_per_lead = request.form.get("cost_per_lead") or 0
+        cost_per_call = request.form.get("cost_per_call") or 0
 
         if not name:
             flash("Name is required.", "error")
@@ -60,6 +63,7 @@ def edit(partner_id):
 
         partner.name = name
         partner.cost_per_lead = cost_per_lead
+        partner.cost_per_call = cost_per_call
         db.session.commit()
 
         flash(f"Partner '{name}' updated.", "success")

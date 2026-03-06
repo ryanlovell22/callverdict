@@ -133,8 +133,13 @@
         <label for="partner_name">Partner Name</label>
         <input type="text" id="partner_name" placeholder="e.g. Smith Plumbing">
 
-        <label for="partner_cpl">Cost per Lead ($)</label>
-        <input type="number" id="partner_cpl" placeholder="0.00" step="0.01" min="0" value="">
+        <p style="color: var(--pico-muted-color); font-size: 0.875rem;">Fill in one or both depending on how you charge this partner.</p>
+
+        <label for="partner_cpl">Per booked job ($)</label>
+        <input type="number" id="partner_cpl" placeholder="e.g. 50.00" step="0.01" min="0" value="">
+
+        <label for="partner_cpc">Per call ($)</label>
+        <input type="number" id="partner_cpc" placeholder="e.g. 10.00" step="0.01" min="0" value="">
 
         <div id="partner-error" class="validation-error" style="display: none;"></div>
         <button onclick="addPartner()" class="outline">Add Partner</button>
@@ -364,6 +369,7 @@ async function createLines() {
 async function addPartner() {
     const nameEl = document.getElementById('partner_name');
     const cplEl = document.getElementById('partner_cpl');
+    const cpcEl = document.getElementById('partner_cpc');
     const errEl = document.getElementById('partner-error');
     errEl.style.display = 'none';
 
@@ -374,13 +380,17 @@ async function addPartner() {
         return;
     }
 
+    const costPerLead = parseFloat(cplEl.value) || 0;
+    const costPerCall = parseFloat(cpcEl.value) || 0;
+
     try {
         const resp = await fetch('/onboarding/add-partner', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 name: name,
-                cost_per_lead: parseFloat(cplEl.value) || 0,
+                cost_per_lead: costPerLead,
+                cost_per_call: costPerCall,
             }),
         });
         const data = await resp.json();
@@ -391,10 +401,14 @@ async function addPartner() {
             const list = document.getElementById('partners-added-list');
             const div = document.createElement('div');
             div.className = 'partner-added';
-            div.innerHTML = '<span>' + data.name + '</span><span>$' + (parseFloat(cplEl.value) || 0).toFixed(2) + '/lead</span>';
+            let pricing = [];
+            if (costPerLead > 0) pricing.push('$' + costPerLead.toFixed(2) + '/booking');
+            if (costPerCall > 0) pricing.push('$' + costPerCall.toFixed(2) + '/call');
+            div.innerHTML = '<span>' + data.name + '</span><span>' + (pricing.join(' + ') || 'No pricing set') + '</span>';
             list.appendChild(div);
             nameEl.value = '';
             cplEl.value = '';
+            cpcEl.value = '';
         }
     } catch (e) {
         errEl.textContent = 'Network error. Please try again.';

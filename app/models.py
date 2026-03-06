@@ -77,7 +77,8 @@ class Partner(db.Model):
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=True)
     password_hash = db.Column(db.String(255), nullable=True)
-    cost_per_lead = db.Column(db.Numeric(10, 2), default=0)
+    cost_per_lead = db.Column(db.Numeric(10, 2), default=0)  # per booked job
+    cost_per_call = db.Column(db.Numeric(10, 2), default=0)  # per answered call
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
