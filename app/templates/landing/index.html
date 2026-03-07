@@ -3,24 +3,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CallOutcome — AI Call Scoring for Lead Gen Operators</title>
-    <meta name="description" content="AI listens to every call, reads the transcript, and tells you: booked or not. Built for lead gen operators, agencies, and anyone billing per lead.">
+    <title>CallOutcome -- Call Scoring Software for Lead Gen Operators | Prove Every Lead</title>
+    <meta name="description" content="Call scoring software that proves which leads booked a job. AI analyses every call recording, generates transcripts, and classifies outcomes. Built for lead gen operators & agencies. Free plan available.">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="CallOutcome — AI Call Scoring for Lead Gen Operators">
-    <meta property="og:description" content="Know instantly which calls booked a job. AI-powered call scoring with full transcripts and proof dashboards.">
+    <meta property="og:title" content="CallOutcome -- Call Scoring Software for Lead Gen Operators | Prove Every Lead">
+    <meta property="og:description" content="Call scoring software that proves which leads booked a job. AI analyses every call recording, generates transcripts, and classifies outcomes. Built for lead gen operators & agencies.">
     <meta property="og:image" content="{{ url_for('static', filename='og-image.png', _external=True) }}">
-    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:url" content="https://calloutcome.com/">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="CallOutcome — AI Call Scoring for Lead Gen Operators">
-    <meta name="twitter:description" content="Know instantly which calls booked a job. AI-powered call scoring with full transcripts and proof dashboards.">
+    <meta name="twitter:title" content="CallOutcome -- Call Scoring Software for Lead Gen Operators | Prove Every Lead">
+    <meta name="twitter:description" content="Call scoring software that proves which leads booked a job. AI analyses every call recording, generates transcripts, and classifies outcomes. Built for lead gen operators & agencies.">
     <meta name="twitter:image" content="{{ url_for('static', filename='og-image.png', _external=True) }}">
 
     <!-- Canonical -->
-    <link rel="canonical" href="{{ request.url }}">
+    <link rel="canonical" href="https://calloutcome.com/">
 
     <!-- Favicon (inline SVG checkmark) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%231095c1'/><path d='M30 52l15 15 25-30' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
@@ -61,6 +61,124 @@
     }
     </script>
 
+    <!-- Schema.org Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "CallOutcome",
+        "url": "https://calloutcome.com",
+        "logo": "https://calloutcome.com/static/og-image.png",
+        "description": "AI-powered call scoring software for lead generation operators. Proves which calls booked a job with transcripts and classifications."
+    }
+    </script>
+
+    <!-- Schema.org BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://calloutcome.com/"
+            }
+        ]
+    }
+    </script>
+
+    <!-- Schema.org FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What platforms are supported?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CallOutcome works with CallRail and Twilio. You can also upload audio files directly if you use a different platform. Connect your account in under 2 minutes."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How accurate is the AI?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Our AI correctly classifies over 95% of calls. It analyses the full transcript to determine whether a job was booked, not just keywords. You can also manually override any classification."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can clients see their own calls?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. You can create partner logins for your clients so they can see their assigned calls, or share a proof dashboard link — no login required."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What happens at the call limit?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "When you hit your monthly call limit, new calls will queue until your next billing period or until you upgrade. Your existing data is always accessible."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is there a contract?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No contracts, no lock-in. All plans are month-to-month. You can upgrade, downgrade, or cancel anytime from your billing settings."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How is CallOutcome different from CallRail?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CallRail is a call tracking platform for marketing attribution. CallOutcome is call scoring software for lead gen — it tells you whether each call booked a job. They work together: use CallRail for tracking, CallOutcome for scoring."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What types of businesses use CallOutcome?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CallOutcome is built for lead gen operators, rank-and-rent site owners, local SEO agencies, and any business that charges per lead or per booked job. If you need to prove call outcomes to clients or partners, it's for you."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How does the AI determine if a job was booked?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The AI reads the full call transcript and analyses the conversation context — scheduling language, appointment confirmations, address exchanges, and follow-up arrangements. It doesn't just match keywords; it understands the flow of the conversation."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I use CallOutcome with my existing call tracking?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. CallOutcome integrates with CallRail and Twilio. You can also upload audio files directly if you use a different call tracking platform. Your existing setup stays exactly as it is."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is my call data secure?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. All call data is stored securely with encryption in transit. Access is restricted to your account and any partners you explicitly invite. We never share your data with third parties or use your recordings to train AI models."
+                }
+            }
+        ]
+    }
+    </script>
+
     <style>
         /* Subtle body gradient */
         body {
@@ -89,6 +207,12 @@
             color: var(--pico-muted-color);
             margin-bottom: 2rem;
             line-height: 1.6;
+        }
+        .hero .trust-line {
+            display: block;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--pico-muted-color);
         }
         .hero-screenshot {
             border-radius: 12px;
@@ -215,19 +339,80 @@
             letter-spacing: 0.05em;
         }
 
-        /* Testimonial */
-        .testimonial { text-align: center; padding: 3rem 0; }
-        .testimonial blockquote {
-            font-size: 1.2rem;
+        /* Problem section */
+        .problem-intro {
+            text-align: center;
+            max-width: 650px;
+            margin: 0 auto 2rem;
+            color: var(--pico-muted-color);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        /* Solution section */
+        .solution-section {
+            text-align: center;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+        .solution-section p {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--pico-muted-color);
+        }
+
+        /* Who section */
+        .who-section .card-grid article {
+            text-align: center;
+        }
+
+        /* Comparison section */
+        .comparison-section .comparison-intro {
+            text-align: center;
+            max-width: 650px;
+            margin: 0 auto 2rem;
+            color: var(--pico-muted-color);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        .comparison-grid article {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .comparison-grid article:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Founder section */
+        .founder-section {
+            text-align: center;
+            padding: 3rem 0;
+        }
+        .founder-section blockquote {
+            font-size: 1.15rem;
             font-style: italic;
-            max-width: 700px;
+            max-width: 720px;
             margin: 0 auto 1rem;
             border-left: none;
             padding: 0;
+            line-height: 1.7;
         }
-        .testimonial cite {
+        .founder-section cite {
             color: var(--pico-muted-color);
             font-size: 0.9rem;
+        }
+
+        /* Pricing note */
+        .pricing-note {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--pico-muted-color);
+            font-size: 0.95rem;
         }
 
         /* FAQ */
@@ -235,6 +420,19 @@
 
         /* CTA section */
         .cta-section { text-align: center; padding: 4rem 0; }
+        .cta-section .cta-sub {
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            color: var(--pico-muted-color);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+        .cta-section .cta-small {
+            display: block;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--pico-muted-color);
+        }
 
         /* Footer */
         .footer-inner {
@@ -268,6 +466,7 @@
             .pricing-grid { grid-template-columns: 1fr; }
             .card-grid { grid-template-columns: 1fr; }
             .steps { grid-template-columns: 1fr; }
+            .comparison-grid { grid-template-columns: 1fr; }
             .nav-anchor { display: none; }
             .footer-inner { flex-direction: column; text-align: center; }
         }
@@ -292,9 +491,10 @@
         <section class="hero">
             <div class="hero-grid">
                 <div>
-                    <h1>Know instantly which calls booked a job.</h1>
-                    <p>AI listens to every call, reads the transcript, and tells you: booked or not. Built for lead gen operators, agencies, and anyone billing per lead.</p>
+                    <h1>Call Scoring Software That Proves Which Leads Booked a Job</h1>
+                    <p>AI analyses every call recording, generates a full transcript, and classifies the outcome — booked, not booked, or voicemail. Built for lead gen operators, agencies, and rank-and-rent businesses who need proof, not guesswork.</p>
                     <a href="/auth/signup" role="button" style="font-size: 1.1rem; padding: 0.75rem 2rem;">Get Started Free — No Card Required</a>
+                    <small class="trust-line">Set up in under 5 minutes. Works with CallRail &amp; Twilio.</small>
                 </div>
                 <div class="hero-screenshot-wrap">
                     <img src="{{ url_for('static', filename='dashboard-preview.png') }}" alt="CallOutcome dashboard showing call scoring results" class="hero-screenshot" loading="eager">
@@ -322,22 +522,31 @@
         </section>
         {% endif %}
 
-        <!-- Pain Points -->
+        <!-- Problem -->
         <section>
-            <h2>Stop guessing. Start proving.</h2>
+            <h2>The Lead Gen Problem Nobody Has Solved (Until Now)</h2>
+            <p class="problem-intro">You generate leads. You send calls. But when it comes time to invoice, the same problems keep coming up.</p>
             <div class="card-grid">
                 <article data-aos="fade-up" data-aos-delay="0">
-                    <h3>Proof, not promises</h3>
-                    <p>Every call gets a transcript and a verdict. When a client questions a lead, you have the evidence right there.</p>
+                    <h3>Clients Dispute Your Leads</h3>
+                    <p>You sent 40 calls last month. Your client says only 15 were real leads. Without proof of what happened on each call, you eat the loss — or spend hours arguing about it.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="100">
-                    <h3>Save hours every week</h3>
-                    <p>AI analyses every call in seconds. No more spending hours manually listening to recordings to figure out what booked.</p>
+                    <h3>Hours Wasted on Call Review</h3>
+                    <p>Manually listening to recordings to figure out which calls booked doesn't scale. Past 20 calls a week, it becomes a second job. And you still miss things.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="200">
-                    <h3>Get paid for every lead</h3>
-                    <p>Share a proof dashboard with your clients showing scored calls, transcripts, and booking details. Disputes drop to zero.</p>
+                    <h3>No Proof When It Matters</h3>
+                    <p>When a client questions whether a lead was legitimate, you need evidence — not your word against theirs. Without transcripts and classifications, you have nothing to show.</p>
                 </article>
+            </div>
+        </section>
+
+        <!-- Solution -->
+        <section>
+            <h2>CallOutcome Gives You the Proof</h2>
+            <div class="solution-section" data-aos="fade-up">
+                <p>CallOutcome is call scoring software purpose-built for lead generation. It connects to your existing call tracking platform, pulls every recording, generates a full transcript, and uses AI to classify the outcome. Every call gets a verdict: Job Booked, Not Booked, or Voicemail. Share the results with your clients through a proof dashboard they can access anytime. No more disputes. No more guesswork. Just data.</p>
             </div>
         </section>
 
@@ -347,18 +556,18 @@
             <div class="steps">
                 <article data-aos="fade-up" data-aos-delay="0">
                     <div class="step-number">1</div>
-                    <h3>Connect</h3>
-                    <p>Link your CallRail or Twilio account in under 2 minutes.</p>
+                    <h3>Connect Your Call Tracking</h3>
+                    <p>Link your CallRail or Twilio account in under two minutes. CallOutcome automatically detects your tracking numbers and starts pulling recordings. No code required, no developer needed.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="100">
                     <div class="step-number">2</div>
-                    <h3>We score every call</h3>
-                    <p>AI transcribes and classifies each call as Job Booked, Not Booked, or Voicemail.</p>
+                    <h3>AI Scores Every Call</h3>
+                    <p>Each call recording is transcribed word-for-word and analysed by AI. The system classifies every call as Job Booked, Not Booked, or Voicemail with over 95% accuracy. Results appear on your dashboard within minutes.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="200">
                     <div class="step-number">3</div>
-                    <h3>See results instantly</h3>
-                    <p>View your dashboard with booking rates, call summaries, and exportable reports.</p>
+                    <h3>Share Proof With Clients</h3>
+                    <p>Give your clients their own login to view scored calls, or share a proof dashboard link — no login required. When disputes come up, the evidence is already there. Export to CSV anytime.</p>
                 </article>
             </div>
         </section>
@@ -372,52 +581,96 @@
                         <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     </div>
                     <h3>AI Classification</h3>
-                    <p>Every call scored as Job Booked, Not Booked, or Voicemail with confidence scores.</p>
+                    <p>Every call is scored as Job Booked, Not Booked, or Voicemail. The AI analyses the full conversation — not just keywords — to determine the real outcome with confidence scores you can trust.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="100">
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     </div>
                     <h3>Full Transcripts</h3>
-                    <p>Read what was said on every call. No need to listen to recordings.</p>
+                    <p>Read exactly what was said on every call. Full word-for-word transcripts generated automatically from your call recordings. No more listening to audio to find out what happened.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="200">
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
                     <h3>Partner Logins</h3>
-                    <p>Give your clients their own login to see their calls. View-only access to assigned lines.</p>
+                    <p>Create view-only logins for your clients so they can see their own calls. Each partner only sees calls assigned to their tracking lines — nothing else. Perfect for agencies managing multiple clients.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="0">
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                     </div>
                     <h3>Dashboard Share Links</h3>
-                    <p>Send your client a link showing their scored calls. No login required. Password-protect if needed.</p>
+                    <p>Generate a shareable link to a proof dashboard showing scored calls and transcripts. Password-protect it if needed. No login required for the recipient. Ideal for settling billing disputes.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="100">
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
                     </div>
                     <h3>CallRail + Twilio</h3>
-                    <p>Works with the tools you already use. Connect in minutes, not hours.</p>
+                    <p>Works with the call tracking tools you already use. Connect your CallRail or Twilio account in minutes and start scoring calls immediately. No migration, no disruption to your workflow.</p>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="200">
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     </div>
                     <h3>CSV Export</h3>
-                    <p>Export your call data anytime. Filter by date, line, or classification.</p>
+                    <p>Export your call data anytime with one click. Filter by date range, tracking line, or classification before exporting. Use the data for invoicing, reporting, or your own analysis.</p>
                 </article>
             </div>
         </section>
 
-        <!-- Testimonial -->
-        <section class="testimonial" data-aos="fade-up">
+        <!-- Who It's For -->
+        <section class="who-section">
+            <h2>Built for Lead Gen. Not Marketing Attribution.</h2>
+            <div class="card-grid">
+                <article data-aos="fade-up" data-aos-delay="0">
+                    <h3>Rank-and-Rent Operators</h3>
+                    <p>You own lead gen websites, rank them in Google, and forward calls to local tradies. You need to prove which calls actually booked a job so you can invoice accurately and keep your partners happy.</p>
+                </article>
+                <article data-aos="fade-up" data-aos-delay="100">
+                    <h3>Local SEO Agencies</h3>
+                    <p>You manage campaigns for multiple clients and need per-client proof of call quality. CallOutcome gives each client their own dashboard showing exactly which leads converted.</p>
+                </article>
+                <article data-aos="fade-up" data-aos-delay="200">
+                    <h3>Pay-Per-Lead Businesses</h3>
+                    <p>You charge per booked job, not per call. That means you need to know which calls actually resulted in work. CallOutcome separates the bookings from the tyre-kickers automatically.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- CallRail Comparison -->
+        <section class="comparison-section">
+            <h2>Why Not Just Use CallRail's Conversation Intelligence?</h2>
+            <p class="comparison-intro">CallRail is great for call tracking and marketing attribution. But if you're doing lead gen, their Conversation Intelligence product wasn't built for you.</p>
+            <div class="comparison-grid">
+                <article data-aos="fade-up" data-aos-delay="0">
+                    <h3>Price</h3>
+                    <p>CallRail CI costs $100-195/month on top of your tracking plan. CallOutcome starts at $0.</p>
+                </article>
+                <article data-aos="fade-up" data-aos-delay="100">
+                    <h3>Purpose</h3>
+                    <p>CallRail focuses on marketing attribution and keyword spotting. CallOutcome focuses on one thing — did the call book a job?</p>
+                </article>
+                <article data-aos="fade-up" data-aos-delay="200">
+                    <h3>Client Access</h3>
+                    <p>CallRail doesn't offer partner logins or shareable proof dashboards. CallOutcome does.</p>
+                </article>
+                <article data-aos="fade-up" data-aos-delay="300">
+                    <h3>Simplicity</h3>
+                    <p>No campaign setup, no keyword configuration. Connect your account and get results in minutes.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Founder Story -->
+        <section class="founder-section" data-aos="fade-up">
+            <h2>Built by a Lead Gen Operator</h2>
             <blockquote>
-                "I was spending 2 hours a week listening to calls just to figure out which ones booked. Now I check the dashboard in 30 seconds."
+                "I built CallOutcome because I was spending 2+ hours every week listening to 80 call recordings just to figure out which ones booked a job. I needed to know so I could invoice my partners accurately. Now the AI does it in seconds, and my partners can see the proof for themselves."
             </blockquote>
-            <cite>— Ryan, lead gen operator</cite>
+            <cite>— Ryan Lovell, Founder of CallOutcome</cite>
         </section>
 
         <!-- Pricing -->
@@ -432,6 +685,7 @@
                     <p>10 calls/month</p>
                     <p>1 tracking line</p>
                     <p>AI scoring + transcripts</p>
+                    <p>Dashboard access</p>
                     <a href="/auth/signup" role="button" class="outline">Get Started Free</a>
                 </article>
                 <article class="popular" data-aos="fade-up" data-aos-delay="100">
@@ -440,8 +694,9 @@
                     <p class="period">/month</p>
                     <hr>
                     <p>100 calls/month</p>
-                    <p>Unlimited lines</p>
+                    <p>Unlimited tracking lines</p>
                     <p>Partner logins</p>
+                    <p>CSV export</p>
                     <a href="/auth/signup" role="button">Get Started Free</a>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="200">
@@ -450,8 +705,9 @@
                     <p class="period">/month</p>
                     <hr>
                     <p>500 calls/month</p>
-                    <p>Unlimited lines</p>
-                    <p>Dashboard Share Links</p>
+                    <p>Unlimited tracking lines</p>
+                    <p>Dashboard share links</p>
+                    <p>Priority processing</p>
                     <a href="/auth/signup" role="button" class="outline">Get Started Free</a>
                 </article>
                 <article data-aos="fade-up" data-aos-delay="300">
@@ -462,9 +718,11 @@
                     <p>1,500 calls/month</p>
                     <p>Unlimited everything</p>
                     <p>Priority support</p>
+                    <p>Custom integrations</p>
                     <a href="/auth/signup" role="button" class="outline">Get Started Free</a>
                 </article>
             </div>
+            <p class="pricing-note">All plans include AI call scoring, full transcripts, and dashboard access. No per-minute charges. No contracts. Cancel anytime.</p>
         </section>
 
         <!-- FAQ -->
@@ -490,13 +748,34 @@
                 <summary>Is there a contract?</summary>
                 <p>No contracts, no lock-in. All plans are month-to-month. You can upgrade, downgrade, or cancel anytime from your billing settings.</p>
             </details>
+            <details>
+                <summary>How is CallOutcome different from CallRail?</summary>
+                <p>CallRail is a call tracking platform for marketing attribution. CallOutcome is call scoring software for lead gen — it tells you whether each call booked a job. They work together: use CallRail for tracking, CallOutcome for scoring.</p>
+            </details>
+            <details>
+                <summary>What types of businesses use CallOutcome?</summary>
+                <p>CallOutcome is built for lead gen operators, rank-and-rent site owners, local SEO agencies, and any business that charges per lead or per booked job. If you need to prove call outcomes to clients or partners, it's for you.</p>
+            </details>
+            <details>
+                <summary>How does the AI determine if a job was booked?</summary>
+                <p>The AI reads the full call transcript and analyses the conversation context — scheduling language, appointment confirmations, address exchanges, and follow-up arrangements. It doesn't just match keywords; it understands the flow of the conversation.</p>
+            </details>
+            <details>
+                <summary>Can I use CallOutcome with my existing call tracking?</summary>
+                <p>Yes. CallOutcome integrates with CallRail and Twilio. You can also upload audio files directly if you use a different call tracking platform. Your existing setup stays exactly as it is.</p>
+            </details>
+            <details>
+                <summary>Is my call data secure?</summary>
+                <p>Yes. All call data is stored securely with encryption in transit. Access is restricted to your account and any partners you explicitly invite. We never share your data with third parties or use your recordings to train AI models.</p>
+            </details>
         </section>
 
         <!-- Final CTA -->
         <section class="cta-section" data-aos="fade-up">
-            <h2>Ready to stop guessing which calls booked?</h2>
-            <p>Start scoring your calls in under 5 minutes. Free plan included.</p>
+            <h2>Stop Guessing. Start Proving.</h2>
+            <p class="cta-sub">Join lead gen operators who use CallOutcome to prove every call, settle every dispute, and get paid for every lead.</p>
             <a href="/auth/signup" role="button" style="font-size: 1.1rem; padding: 0.75rem 2rem;">Get Started Free</a>
+            <small class="cta-small">Free plan includes 10 calls/month. No credit card required. Upgrade anytime.</small>
         </section>
     </main>
 
@@ -508,6 +787,9 @@
                 <li><a href="#features">Features</a></li>
                 <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#faq">FAQ</a></li>
+                <li><a href="/privacy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms of Service</a></li>
+                <li><a href="/blog/">Blog</a></li>
                 <li><a href="/auth/login">Log in</a></li>
                 <li><a href="/auth/signup">Sign up</a></li>
             </ul>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en-AU" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blog | CallOutcome</title>
+    <meta name="description" content="Insights on AI call scoring, lead generation, and proving ROI for your call campaigns.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://calloutcome.com/blog/">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%231095c1'/><path d='M30 52l15 15 25-30' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+
+    <!-- Microsoft Clarity -->
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "vrhl1i276u");
+    </script>
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+    <!-- Pico CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+    <style>
+        body {
+            background: linear-gradient(180deg, var(--pico-background-color) 0%, rgba(16, 149, 193, 0.03) 50%, var(--pico-background-color) 100%);
+        }
+        .post-list {
+            list-style: none;
+            padding: 0;
+        }
+        .post-list li {
+            margin-bottom: 2rem;
+        }
+        .post-list h2 {
+            text-align: left;
+            margin-bottom: 0.25rem;
+        }
+        .post-list h2 a {
+            text-decoration: none;
+        }
+        .post-meta {
+            color: var(--pico-muted-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .post-description {
+            color: var(--pico-secondary-color);
+        }
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .footer-links a {
+            color: var(--pico-muted-color);
+            font-size: 0.85rem;
+        }
+        @media (max-width: 768px) {
+            .nav-anchor { display: none; }
+            .footer-inner { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Nav -->
+    <header class="container">
+        <nav>
+            <ul><li><a href="/welcome" style="text-decoration:none;"><strong>CallOutcome</strong></a></li></ul>
+            <ul>
+                <li><a href="/blog/" aria-current="page">Blog</a></li>
+                <li class="nav-anchor"><a href="/welcome#features">Features</a></li>
+                <li class="nav-anchor"><a href="/welcome#pricing">Pricing</a></li>
+                <li><a href="/auth/login">Log in</a></li>
+                <li><a href="/auth/signup" role="button">Get Started Free</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h1>Blog</h1>
+
+        {% if posts %}
+        <ul class="post-list">
+            {% for post in posts %}
+            <li>
+                <h2><a href="/blog/{{ post.meta.slug }}">{{ post.meta.title }}</a></h2>
+                <p class="post-meta">{{ post.meta.date }}</p>
+                {% if post.meta.description %}
+                <p class="post-description">{{ post.meta.description }}</p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No posts yet. Check back soon.</p>
+        {% endif %}
+    </main>
+
+    <footer class="container">
+        <hr>
+        <div class="footer-inner">
+            <small>CallOutcome &copy; 2026</small>
+            <ul class="footer-links">
+                <li><a href="/welcome#features">Features</a></li>
+                <li><a href="/welcome#pricing">Pricing</a></li>
+                <li><a href="/welcome#faq">FAQ</a></li>
+                <li><a href="/auth/login">Log in</a></li>
+                <li><a href="/auth/signup">Sign up</a></li>
+            </ul>
+        </div>
+    </footer>
+</body>
+</html>

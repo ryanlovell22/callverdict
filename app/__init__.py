@@ -1,4 +1,7 @@
-from flask import Flask, redirect, render_template
+import os
+from datetime import datetime, timezone
+
+from flask import Flask, redirect, render_template, Response
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
@@ -60,6 +63,7 @@ def create_app():
     from .landing import bp as landing_bp
     from .billing import bp as billing_bp
     from .onboarding import bp as onboarding_bp
+    from .blog import bp as blog_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -71,6 +75,7 @@ def create_app():
     app.register_blueprint(landing_bp)
     app.register_blueprint(billing_bp)
     app.register_blueprint(onboarding_bp)
+    app.register_blueprint(blog_bp)
 
     from .shared import bp as shared_bp
     app.register_blueprint(shared_bp)
@@ -87,6 +92,14 @@ def create_app():
     def server_error(e):
         return render_template('errors/500.html'), 500
 
+    @app.route('/privacy')
+    def privacy():
+        return render_template('legal/privacy.html')
+
+    @app.route('/terms')
+    def terms():
+        return render_template('legal/terms.html')
+
     @app.route('/health')
     def health_check():
         try:
@@ -95,5 +108,69 @@ def create_app():
             return {'status': 'healthy'}, 200
         except Exception as e:
             return {'status': 'unhealthy', 'error': str(e)}, 500
+
+    @app.route('/robots.txt')
+    def robots_txt():
+        body = (
+            "User-agent: *\n"
+            "Allow: /welcome\n"
+            "Allow: /blog/\n"
+            "Disallow: /dashboard\n"
+            "Disallow: /auth/\n"
+            "Disallow: /onboarding\n"
+            "Disallow: /settings\n"
+            "Disallow: /lines\n"
+            "Disallow: /partners\n"
+            "Disallow: /upload\n"
+            "Disallow: /webhooks\n"
+            "Disallow: /billing\n"
+            "Disallow: /shared/\n"
+            "\n"
+            "Sitemap: https://calloutcome.com/sitemap.xml\n"
+        )
+        return Response(body, mimetype='text/plain')
+
+    @app.route('/sitemap.xml')
+    def sitemap_xml():
+        urls = []
+        urls.append({
+            'loc': 'https://calloutcome.com/welcome',
+            'changefreq': 'weekly',
+            'priority': '1.0',
+        })
+        urls.append({
+            'loc': 'https://calloutcome.com/blog/',
+            'changefreq': 'weekly',
+            'priority': '0.8',
+        })
+
+        posts_dir = os.path.join(app.root_path, 'blog', 'posts')
+        if os.path.isdir(posts_dir):
+            for filename in sorted(os.listdir(posts_dir)):
+                if filename.endswith('.md'):
+                    slug = filename[:-3]
+                    filepath = os.path.join(posts_dir, filename)
+                    mtime = os.path.getmtime(filepath)
+                    lastmod = datetime.fromtimestamp(mtime, tz=timezone.utc).strftime('%Y-%m-%d')
+                    urls.append({
+                        'loc': f'https://calloutcome.com/blog/{slug}',
+                        'lastmod': lastmod,
+                        'changefreq': 'monthly',
+                        'priority': '0.7',
+                    })
+
+        xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>']
+        xml_parts.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+        for url in urls:
+            xml_parts.append('  <url>')
+            xml_parts.append(f'    <loc>{url["loc"]}</loc>')
+            if 'lastmod' in url:
+                xml_parts.append(f'    <lastmod>{url["lastmod"]}</lastmod>')
+            xml_parts.append(f'    <changefreq>{url["changefreq"]}</changefreq>')
+            xml_parts.append(f'    <priority>{url["priority"]}</priority>')
+            xml_parts.append('  </url>')
+        xml_parts.append('</urlset>')
+
+        return Response('\n'.join(xml_parts), mimetype='application/xml')
 
     return app
