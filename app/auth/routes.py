@@ -101,14 +101,14 @@ def forgot_password():
             reset_url = url_for("auth.reset_password", token=token, _external=True)
             send_email(
                 to=account.email,
-                subject="Reset your CallVerdict password",
+                subject="Reset your CallOutcome password",
                 html=f"""
                 <h2>Password Reset</h2>
                 <p>Hi {account.name},</p>
                 <p>Click the link below to reset your password. This link expires in 1 hour.</p>
                 <p><a href="{reset_url}" style="display:inline-block;padding:12px 24px;background:#1095c1;color:white;text-decoration:none;border-radius:6px;">Reset Password</a></p>
                 <p>If you didn't request this, you can safely ignore this email.</p>
-                <p>— CallVerdict</p>
+                <p>— CallOutcome</p>
                 """,
             )
 

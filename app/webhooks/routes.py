@@ -156,13 +156,15 @@ def callrail_callback():
         logger.info("CallRail call %s too short (%ds), skipping", call_id, duration)
         return jsonify({"status": "skipped, too short"}), 200
 
-    # Parse call date from start_time (ISO format)
+    # Parse call date from start_time (ISO format) and normalise to naive UTC
     call_date = None
     if start_time:
         try:
             call_date = datetime.fromisoformat(start_time)
         except (ValueError, TypeError):
             call_date = datetime.now(timezone.utc)
+    if call_date and call_date.tzinfo is not None:
+        call_date = call_date.astimezone(timezone.utc).replace(tzinfo=None)
 
     # Check usage limit (after dedup/validation, before costly processing)
     at_limit = account.at_usage_limit

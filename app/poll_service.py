@@ -103,7 +103,7 @@ def poll_account(account, since):
             f"{account.twilio_account_sid}/Recordings/{recording_sid}"
         )
 
-        # Parse the date
+        # Parse the date and normalise to naive UTC
         date_str = rec.get("date_created")
         call_date = None
         if date_str:
@@ -113,6 +113,8 @@ def poll_account(account, since):
                 )
             except ValueError:
                 call_date = datetime.now(timezone.utc)
+        if call_date and call_date.tzinfo is not None:
+            call_date = call_date.astimezone(timezone.utc).replace(tzinfo=None)
 
         # Create call record
         call = Call(
@@ -221,7 +223,7 @@ def poll_missed_calls(account, since):
         if not tracking_line:
             continue
 
-        # Parse the date
+        # Parse the date and normalise to naive UTC
         date_str = twilio_call.get("date_created")
         call_date = None
         if date_str:
@@ -231,6 +233,8 @@ def poll_missed_calls(account, since):
                 )
             except ValueError:
                 call_date = datetime.now(timezone.utc)
+        if call_date and call_date.tzinfo is not None:
+            call_date = call_date.astimezone(timezone.utc).replace(tzinfo=None)
 
         call = Call(
             account_id=account.id,
@@ -298,7 +302,7 @@ def poll_short_answered_calls(account, since):
         from_number = twilio_call.get("from", "")
         to_number = twilio_call.get("to", "")
 
-        # Parse the date
+        # Parse the date and normalise to naive UTC
         date_str = twilio_call.get("date_created")
         call_date = None
         if date_str:
@@ -308,6 +312,8 @@ def poll_short_answered_calls(account, since):
                 )
             except ValueError:
                 call_date = datetime.now(timezone.utc)
+        if call_date and call_date.tzinfo is not None:
+            call_date = call_date.astimezone(timezone.utc).replace(tzinfo=None)
 
         # Dedup by caller + time window. Forwarded calls create two legs
         # with different SIDs but same caller and near-identical timestamps.
@@ -471,13 +477,15 @@ def run_callrail_backfill(account, days=7):
         if not tracking_line:
             continue
 
-        # Parse call date
+        # Parse call date and normalise to naive UTC
         call_date = None
         if start_time:
             try:
                 call_date = datetime.fromisoformat(start_time)
             except (ValueError, TypeError):
                 call_date = datetime.now(timezone.utc)
+        if call_date and call_date.tzinfo is not None:
+            call_date = call_date.astimezone(timezone.utc).replace(tzinfo=None)
 
         # Missed / unanswered calls
         if not answered or not recording_url:

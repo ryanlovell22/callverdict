@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Partners — CallVerdict{% endblock %}
+{% block title %}Partners — CallOutcome{% endblock %}
 
 {% block content %}
 <h2>Partners</h2>
@@ -14,9 +14,10 @@
                 <th>Name</th>
                 <th>Per Booking</th>
                 <th>Per Call</th>
+                <th>Other Pricing</th>
                 <th>Assigned Lines</th>
                 <th>Created</th>
-                <th>Proof Links</th>
+                <th>Dashboard Share Links</th>
                 <th></th>
             </tr>
         </thead>
@@ -26,6 +27,19 @@
                 <td>{{ partner.name }}</td>
                 <td>{{ '$%.2f'|format(partner.cost_per_lead) if partner.cost_per_lead else '—' }}</td>
                 <td>{{ '$%.2f'|format(partner.cost_per_call) if partner.cost_per_call else '—' }}</td>
+                <td>
+                    {% set extras = [] %}
+                    {% if partner.cost_per_voicemail and partner.cost_per_voicemail > 0 %}
+                        {% set _ = extras.append('Voicemail: $%.2f'|format(partner.cost_per_voicemail)) %}
+                    {% endif %}
+                    {% if partner.weekly_minimum_fee and partner.weekly_minimum_fee > 0 %}
+                        {% set _ = extras.append('Weekly min: $%.2f/%d calls'|format(partner.weekly_minimum_fee, partner.weekly_minimum_calls or 0)) %}
+                    {% endif %}
+                    {% if partner.cost_per_qualified_call and partner.cost_per_qualified_call > 0 %}
+                        {% set _ = extras.append('Qualified (%ds+): $%.2f'|format(partner.qualified_call_seconds or 60, partner.cost_per_qualified_call)) %}
+                    {% endif %}
+                    {{ extras|join(', ') if extras else '—' }}
+                </td>
                 <td>{{ partner.tracking_lines | length }}</td>
                 <td>{{ partner.created_at.strftime('%d %b %Y') if partner.created_at else '—' }}</td>
                 <td><a href="{{ url_for('dashboard.shared_links') }}">Manage</a></td>

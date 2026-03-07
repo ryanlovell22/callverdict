@@ -1,4 +1,4 @@
-"""AI-powered call transcription and classification for CallVerdict.
+"""AI-powered call transcription and classification for CallOutcome.
 
 Uses OpenAI Whisper for transcription and GPT-4o-mini for classification.
 Independent of Twilio Conversational Intelligence — works with any audio source.

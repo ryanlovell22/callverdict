@@ -1,4 +1,4 @@
-"""Twilio API helper functions for CallVerdict."""
+"""Twilio API helper functions for CallOutcome."""
 
 import json
 import logging
@@ -166,14 +166,14 @@ def create_ci_service(account_sid, auth_token, webhook_url=None):
     list_resp = requests.get(f"{TWILIO_CI_BASE}/Services", auth=auth, timeout=30)
     if list_resp.status_code == 200:
         for svc in list_resp.json().get("services", []):
-            if svc.get("unique_name") == "callverdict":
+            if svc.get("unique_name") == "calloutcome":
                 logger.info("Reusing existing CI service %s", svc["sid"])
                 return svc["sid"]
 
     # No existing service — create one
     data = {
-        "UniqueName": "callverdict",
-        "FriendlyName": "CallVerdict Job Classifier",
+        "UniqueName": "calloutcome",
+        "FriendlyName": "CallOutcome Job Classifier",
         "AutoTranscribe": "false",
         "LanguageCode": "en-AU",
     }

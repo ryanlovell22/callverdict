@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Settings — CallVerdict{% endblock %}
+{% block title %}Settings — CallOutcome{% endblock %}
 
 {% block content %}
 <h2>Settings</h2>
@@ -7,7 +7,7 @@
 <!-- 1. Call Source -->
 <article style="max-width: 600px;">
     <h3>Call Source</h3>
-    <p style="color: var(--pico-muted-color);">Connect Twilio or CallRail so CallVerdict can pull your call recordings.</p>
+    <p style="color: var(--pico-muted-color);">Connect Twilio or CallRail so CallOutcome can pull your call recordings.</p>
 
     <h4>Twilio</h4>
 
@@ -164,6 +164,31 @@
 
         <button type="submit">Upload &amp; Analyse</button>
     </form>
+</article>
+
+<!-- 5. Billing -->
+<article style="max-width: 600px;">
+    <h3>Billing</h3>
+    <p><strong>{{ account.stripe_plan | capitalize }}</strong>
+    {% if account.stripe_plan != 'free' %}
+     — {{ account.subscription_status | capitalize }}
+    {% endif %}
+    </p>
+
+    {% if account.is_admin %}
+    <p><strong>Unlimited</strong> (admin account)</p>
+    {% else %}
+    <p>{{ account.plan_calls_used or 0 }} of {{ account.plan_calls_limit or 10 }} calls used</p>
+    <progress value="{{ account.plan_calls_used or 0 }}" max="{{ account.plan_calls_limit or 10 }}"></progress>
+
+    {% if account.plan_calls_used and account.plan_calls_limit and account.plan_calls_used >= account.plan_calls_limit %}
+    <p style="color: var(--pico-del-color);"><strong>You've reached your call limit.</strong> Upgrade to continue scoring calls.</p>
+    {% elif account.plan_calls_used and account.plan_calls_limit and account.plan_calls_used >= (account.plan_calls_limit * 0.8) %}
+    <p style="color: var(--pico-ins-color);">You're approaching your call limit. Consider upgrading.</p>
+    {% endif %}
+    {% endif %}
+
+    <a href="{{ url_for('billing.index') }}" role="button" class="outline">Manage Billing</a>
 </article>
 
 {% endblock %}

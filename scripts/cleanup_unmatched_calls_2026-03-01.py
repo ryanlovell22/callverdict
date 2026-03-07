@@ -1,7 +1,7 @@
 """One-off script: Delete calls that have no tracking line assigned.
 
 These are calls from Twilio numbers (e.g. hot tub lines) that aren't
-configured as tracking lines in CallVerdict. Safe to delete — they
+configured as tracking lines in CallOutcome. Safe to delete — they
 were never meant to be tracked here.
 
 Usage:

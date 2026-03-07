@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Shared Links — CallVerdict{% endblock %}
+{% block title %}Dashboard Share Links — CallOutcome{% endblock %}
 
 {% block content %}
-<h2>Shared Proof Links</h2>
+<h2>Dashboard Share Links</h2>
 
 <article style="max-width: 700px;">
     <h3>Create New Link</h3>
@@ -35,8 +35,12 @@
         {% endfor %}
 
         <label>
+            <input type="checkbox" id="realtime-toggle" name="realtime" value="1">
+            Realtime (always up to date, no date filtering)
+        </label>
+        <label>
             Date Window
-            <select name="date_window_days">
+            <select name="date_window_days" id="date-window-select">
                 <option value="7">Last 7 days</option>
                 <option value="14">Last 14 days</option>
                 <option value="30" selected>Last 30 days</option>
@@ -58,7 +62,7 @@
 </article>
 
 {% if dashboards %}
-<h3>Existing Links</h3>
+<h3>Existing Dashboard Share Links</h3>
 <figure>
     <table role="grid">
         <thead>
@@ -76,7 +80,7 @@
             {% for d in dashboards %}
             <tr>
                 <td>{{ d.partner.name }} — {{ d.tracking_lines | length }} line{{ 's' if d.tracking_lines | length != 1 else '' }}</td>
-                <td>{{ d.date_window_days or 30 }} days</td>
+                <td>{% if d.date_window_days == 0 %}Realtime{% else %}{{ d.date_window_days or 30 }} days{% endif %}</td>
                 <td style="white-space: nowrap;">
                     <input type="text" id="proof-url-{{ d.id }}"
                            value="{{ url_for('shared.public_dashboard', share_token=d.share_token, _external=True) }}"
@@ -97,7 +101,7 @@
                     </form>
                     <form method="post" action="{{ url_for('dashboard.delete_shared_link', dashboard_id=d.id) }}" style="display:inline;">
                         <button type="submit" class="outline secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;"
-                                onclick="return confirm('Delete this shared link?')">Delete</button>
+                                onclick="return confirm('Delete this Dashboard Share Link?')">Delete</button>
                     </form>
                 </td>
             </tr>
@@ -107,11 +111,37 @@
 </figure>
 {% else %}
 <article>
-    <p>No shared links yet. Create one above to share call proof with your clients.</p>
+    <p>No Dashboard Share Links yet. Create one above to share call proof with your clients.</p>
 </article>
 {% endif %}
 
 <script>
+// Realtime toggle: disable date window dropdown and override value to 0
+var realtimeToggle = document.getElementById('realtime-toggle');
+var dateWindowSelect = document.getElementById('date-window-select');
+
+realtimeToggle.addEventListener('change', function() {
+    if (this.checked) {
+        dateWindowSelect.disabled = true;
+        dateWindowSelect.style.opacity = '0.5';
+    } else {
+        dateWindowSelect.disabled = false;
+        dateWindowSelect.style.opacity = '1';
+    }
+});
+
+// On form submit, if realtime is checked, inject a hidden input with value 0
+// (disabled selects don't submit, so we need to ensure the value gets sent)
+document.querySelector('form[action*="create"]').addEventListener('submit', function() {
+    if (realtimeToggle.checked) {
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'date_window_days';
+        hidden.value = '0';
+        this.appendChild(hidden);
+    }
+});
+
 document.getElementById('partner-select').addEventListener('change', function() {
     // Hide all partner line fieldsets
     document.querySelectorAll('.partner-lines').forEach(function(fs) {

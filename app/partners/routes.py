@@ -24,6 +24,11 @@ def add():
         name = request.form.get("name", "").strip()
         cost_per_lead = request.form.get("cost_per_lead") or 0
         cost_per_call = request.form.get("cost_per_call") or 0
+        cost_per_voicemail = request.form.get("cost_per_voicemail") or 0
+        weekly_minimum_fee = request.form.get("weekly_minimum_fee") or 0
+        weekly_minimum_calls = request.form.get("weekly_minimum_calls") or 0
+        qualified_call_seconds = request.form.get("qualified_call_seconds") or 60
+        cost_per_qualified_call = request.form.get("cost_per_qualified_call") or 0
 
         if not name:
             flash("Name is required.", "error")
@@ -34,6 +39,11 @@ def add():
             name=name,
             cost_per_lead=cost_per_lead,
             cost_per_call=cost_per_call,
+            cost_per_voicemail=cost_per_voicemail,
+            weekly_minimum_fee=weekly_minimum_fee,
+            weekly_minimum_calls=weekly_minimum_calls,
+            qualified_call_seconds=qualified_call_seconds,
+            cost_per_qualified_call=cost_per_qualified_call,
         )
         db.session.add(partner)
         db.session.commit()
@@ -56,6 +66,11 @@ def edit(partner_id):
         name = request.form.get("name", "").strip()
         cost_per_lead = request.form.get("cost_per_lead") or 0
         cost_per_call = request.form.get("cost_per_call") or 0
+        cost_per_voicemail = request.form.get("cost_per_voicemail") or 0
+        weekly_minimum_fee = request.form.get("weekly_minimum_fee") or 0
+        weekly_minimum_calls = request.form.get("weekly_minimum_calls") or 0
+        qualified_call_seconds = request.form.get("qualified_call_seconds") or 60
+        cost_per_qualified_call = request.form.get("cost_per_qualified_call") or 0
 
         if not name:
             flash("Name is required.", "error")
@@ -64,6 +79,11 @@ def edit(partner_id):
         partner.name = name
         partner.cost_per_lead = cost_per_lead
         partner.cost_per_call = cost_per_call
+        partner.cost_per_voicemail = cost_per_voicemail
+        partner.weekly_minimum_fee = weekly_minimum_fee
+        partner.weekly_minimum_calls = weekly_minimum_calls
+        partner.qualified_call_seconds = qualified_call_seconds
+        partner.cost_per_qualified_call = cost_per_qualified_call
         db.session.commit()
 
         flash(f"Partner '{name}' updated.", "success")

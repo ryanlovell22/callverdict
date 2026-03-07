@@ -1,4 +1,4 @@
-"""CallRail API helper functions for CallVerdict."""
+"""CallRail API helper functions for CallOutcome."""
 
 import logging
 

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Edit' if partner else 'Add' }} Partner — CallVerdict{% endblock %}
+{% block title %}{{ 'Edit' if partner else 'Add' }} Partner — CallOutcome{% endblock %}
 
 {% block content %}
 <h2>{{ 'Edit' if partner else 'Add' }} Partner</h2>
@@ -26,6 +26,54 @@
                    value="{{ '%.2f'|format(partner.cost_per_call) if partner and partner.cost_per_call else '' }}"
                    placeholder="e.g. 10.00">
             <small style="color: var(--pico-muted-color);">Charged for every answered call, regardless of outcome.</small>
+
+            {% set has_advanced = partner and (
+                (partner.cost_per_voicemail and partner.cost_per_voicemail > 0) or
+                (partner.weekly_minimum_fee and partner.weekly_minimum_fee > 0) or
+                (partner.cost_per_qualified_call and partner.cost_per_qualified_call > 0)
+            ) %}
+            <details style="margin-top: 1.5rem;" {{ 'open' if has_advanced else '' }}>
+                <summary style="cursor: pointer; font-weight: 600;">Advanced pricing</summary>
+                <div style="margin-top: 1rem;">
+                    <label for="cost_per_voicemail">Per voicemail ($)</label>
+                    <input type="number" id="cost_per_voicemail" name="cost_per_voicemail" step="0.01" min="0"
+                           value="{{ '%.2f'|format(partner.cost_per_voicemail) if partner and partner.cost_per_voicemail else '' }}"
+                           placeholder="e.g. 5.00">
+                    <small style="color: var(--pico-muted-color);">Charged when a call is classified as a voicemail with a detailed message.</small>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                        <div>
+                            <label for="weekly_minimum_fee">Weekly minimum fee ($)</label>
+                            <input type="number" id="weekly_minimum_fee" name="weekly_minimum_fee" step="0.01" min="0"
+                                   value="{{ '%.2f'|format(partner.weekly_minimum_fee) if partner and partner.weekly_minimum_fee else '' }}"
+                                   placeholder="e.g. 200.00">
+                        </div>
+                        <div>
+                            <label for="weekly_minimum_calls">Guaranteed calls/week</label>
+                            <input type="number" id="weekly_minimum_calls" name="weekly_minimum_calls" step="1" min="0"
+                                   value="{{ partner.weekly_minimum_calls if partner and partner.weekly_minimum_calls else '' }}"
+                                   placeholder="e.g. 10">
+                        </div>
+                    </div>
+                    <small style="color: var(--pico-muted-color);">Partner pays a fixed weekly amount for a guaranteed minimum number of calls.</small>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                        <div>
+                            <label for="qualified_call_seconds">Qualified call threshold (seconds)</label>
+                            <input type="number" id="qualified_call_seconds" name="qualified_call_seconds" step="1" min="1"
+                                   value="{{ partner.qualified_call_seconds if partner and partner.qualified_call_seconds and partner.qualified_call_seconds != 60 else '' }}"
+                                   placeholder="60">
+                        </div>
+                        <div>
+                            <label for="cost_per_qualified_call">Per qualified call ($)</label>
+                            <input type="number" id="cost_per_qualified_call" name="cost_per_qualified_call" step="0.01" min="0"
+                                   value="{{ '%.2f'|format(partner.cost_per_qualified_call) if partner and partner.cost_per_qualified_call else '' }}"
+                                   placeholder="e.g. 15.00">
+                        </div>
+                    </div>
+                    <small style="color: var(--pico-muted-color);">Charged for calls lasting at least the specified number of seconds.</small>
+                </div>
+            </details>
         </fieldset>
 
         <button type="submit">{{ 'Save' if partner else 'Create Partner' }}</button>

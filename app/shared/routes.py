@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta, timezone
 
+import pytz
 import requests as http_requests
 from flask import render_template, request, redirect, url_for, session, abort, Response
 from sqlalchemy import func, or_
@@ -33,22 +34,33 @@ def public_dashboard(share_token):
     else:
         query = query.filter(False)
 
-    # Date window: use the configured rolling window, or default to 30 days
-    today = datetime.now(timezone.utc).date()
-    window_days = dashboard.date_window_days or 30
-    date_from = (today - timedelta(days=window_days)).strftime("%Y-%m-%d")
-    date_to = today.strftime("%Y-%m-%d")
+    # Date window: 0 = realtime (no filtering), positive = rolling window, NULL defaults to 30
+    window_days = dashboard.date_window_days
+    if window_days is None:
+        window_days = 30
 
-    try:
-        dt_from = datetime.strptime(date_from, "%Y-%m-%d")
-        query = query.filter(Call.call_date >= dt_from)
-    except ValueError:
-        pass
-    try:
-        dt_to = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
-        query = query.filter(Call.call_date < dt_to)
-    except ValueError:
-        pass
+    if window_days > 0:
+        # Use the account's timezone for date boundaries
+        try:
+            account = db.session.get(Account, dashboard.account_id)
+            tz_name = account.timezone if account else 'Australia/Adelaide'
+            local_tz = pytz.timezone(tz_name)
+        except Exception:
+            local_tz = pytz.timezone('Australia/Adelaide')
+
+        now_local = datetime.now(timezone.utc).astimezone(local_tz)
+        today_local = now_local.date()
+        start_date = today_local - timedelta(days=window_days)
+
+        # Convert local date boundaries to naive UTC for the DB query
+        dt_from = local_tz.localize(datetime(start_date.year, start_date.month, start_date.day))
+        dt_from_utc = dt_from.astimezone(timezone.utc).replace(tzinfo=None)
+        query = query.filter(Call.call_date >= dt_from_utc)
+
+        end_date = today_local + timedelta(days=1)
+        dt_to = local_tz.localize(datetime(end_date.year, end_date.month, end_date.day))
+        dt_to_utc = dt_to.astimezone(timezone.utc).replace(tzinfo=None)
+        query = query.filter(Call.call_date < dt_to_utc)
 
     # Stats
     total = query.count()
@@ -91,7 +103,9 @@ def public_dashboard(share_token):
     calls = answered_query.order_by(Call.call_date.desc()).all()
 
     # Build a human-readable window label
-    if window_days <= 7:
+    if window_days == 0:
+        window_label = "All time (realtime)"
+    elif window_days <= 7:
         window_label = "Last 7 days"
     elif window_days <= 14:
         window_label = "Last 14 days"

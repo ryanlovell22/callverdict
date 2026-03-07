@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — CallVerdict{% endblock %}
+{% block title %}Dashboard — CallOutcome{% endblock %}
 
 {% block content %}
 <h2>Dashboard</h2>
@@ -37,33 +37,42 @@
     {% endif %}
 {% endif %}
 
-<!-- Stats Bar -->
-<div class="stats-grid">
-    <article class="stat-card stat-total">
-        <h3 data-count="{{ stats.total }}">{{ stats.total }}</h3>
-        <p>Total Calls</p>
-    </article>
-    <article class="stat-card stat-booked">
-        <h3 data-count="{{ stats.booked }}" style="color: #51cf66;">{{ stats.booked }}</h3>
-        <p>Booked</p>
-    </article>
-    <article class="stat-card stat-not-booked">
-        <h3 data-count="{{ stats.not_booked }}" style="color: #ff6b6b;">{{ stats.not_booked }}</h3>
-        <p>Not Booked</p>
-    </article>
-    <article class="stat-card stat-missed">
-        <h3 data-count="{{ stats.missed }}" style="color: #ffa94d;">{{ stats.missed }}</h3>
-        <p>Missed Calls</p>
-    </article>
-    <article class="stat-card stat-conversion">
-        <h3 data-count="{{ stats.rate }}" data-suffix="%" style="color: #b197fc;">{{ stats.rate }}%</h3>
-        <p>Conversion</p>
-    </article>
-    <article class="stat-card stat-value">
-        <h3 data-count="{{ stats.total_value }}" data-prefix="$" data-decimals="2" style="color: #63e6be;">${{ "%.2f"|format(stats.total_value) }}</h3>
-        <p>{% if current_user.user_type == 'partner' %}Lead Cost{% else %}Lead Value{% endif %}</p>
-    </article>
-</div>
+<!-- Call Stats — Donut + Chip Grid -->
+{% set booked_pct = (stats.booked / stats.total * 100) if stats.total else 0 %}
+{% set not_booked_pct = (stats.not_booked / stats.total * 100) if stats.total else 0 %}
+{% set missed_pct = (stats.missed / stats.total * 100) if stats.total else 0 %}
+<article class="stats-hero">
+    <div class="stats-hero-inner">
+        <div class="donut-chart" style="background: {% if stats.total %}conic-gradient(#51cf66 0% {{ booked_pct }}%, #ff6b6b {{ booked_pct }}% {{ booked_pct + not_booked_pct }}%, #ffa94d {{ booked_pct + not_booked_pct }}% 100%){% else %}conic-gradient(rgba(255,255,255,0.1) 0% 100%){% endif %};">
+            <div class="donut-hole">
+                <span class="donut-total" data-count="{{ stats.total }}">{{ stats.total }}</span>
+                <span class="donut-label">Calls</span>
+            </div>
+        </div>
+        <div class="chip-grid">
+            <div class="stat-chip" style="border-left-color: #51cf66;">
+                <span class="chip-val" data-count="{{ stats.booked }}" style="color: #51cf66;">{{ stats.booked }}</span>
+                <span class="chip-lbl">Booked</span>
+            </div>
+            <div class="stat-chip" style="border-left-color: #ff6b6b;">
+                <span class="chip-val" data-count="{{ stats.not_booked }}" style="color: #ff6b6b;">{{ stats.not_booked }}</span>
+                <span class="chip-lbl">Not Booked</span>
+            </div>
+            <div class="stat-chip" style="border-left-color: #ffa94d;">
+                <span class="chip-val" data-count="{{ stats.missed }}" style="color: #ffa94d;">{{ stats.missed }}</span>
+                <span class="chip-lbl">Missed</span>
+            </div>
+            <div class="stat-chip chip-full" style="border-left-color: #b197fc;">
+                <span class="chip-val" data-count="{{ stats.rate }}" data-suffix="%" style="color: #b197fc;">{{ stats.rate }}%</span>
+                <span class="chip-lbl">Conversion</span>
+            </div>
+            <div class="stat-chip chip-full chip-highlight" style="border-left-color: #63e6be;">
+                <span class="chip-val" data-count="{{ stats.total_value }}" data-prefix="$" data-decimals="2" style="color: #63e6be;">${{ "%.2f"|format(stats.total_value) }}</span>
+                <span class="chip-lbl">{% if current_user.user_type == 'partner' %}Lead Cost{% else %}Lead Value{% endif %}</span>
+            </div>
+        </div>
+    </div>
+</article>
 
 <!-- Filters -->
 {% set has_filters = filters.line or filters.partner or filters.classification or filters.date_from or filters.date_to %}
@@ -128,6 +137,7 @@
             <tr>
                 <th>Date</th>
                 <th>Line</th>
+                <th>Partner</th>
                 <th>Caller</th>
                 <th>Customer</th>
                 <th>Duration</th>
@@ -142,6 +152,7 @@
             <tr class="{% if call.call_outcome == 'missed' %}row-missed{% elif call.classification == 'JOB_BOOKED' %}row-booked{% elif call.classification == 'NOT_BOOKED' %}row-not-booked{% endif %}">
                 <td>{{ call.call_date|localtime }}</td>
                 <td>{{ call.tracking_line.label if call.tracking_line else '—' }}</td>
+                <td>{{ call.tracking_line.partner.name if call.tracking_line and call.tracking_line.partner else '—' }}</td>
                 <td>{{ call.caller_number or '—' }}</td>
                 <td>{{ call.customer_name or '—' }}</td>
                 <td>{{ '%d:%02d'|format(call.call_duration // 60, call.call_duration % 60) if call.call_duration else '—' }}</td>

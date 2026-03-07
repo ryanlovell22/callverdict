@@ -1,4 +1,4 @@
-"""Stripe billing helpers for CallVerdict."""
+"""Stripe billing helpers for CallOutcome."""
 
 import logging
 
@@ -30,7 +30,7 @@ def create_checkout_session(account, price_id, success_url, cancel_url):
         customer = s.Customer.create(
             email=account.email,
             name=account.name,
-            metadata={"callverdict_account_id": str(account.id)},
+            metadata={"calloutcome_account_id": str(account.id)},
         )
         account.stripe_customer_id = customer.id
         from .models import db
@@ -43,7 +43,7 @@ def create_checkout_session(account, price_id, success_url, cancel_url):
         mode="subscription",
         success_url=success_url,
         cancel_url=cancel_url,
-        metadata={"callverdict_account_id": str(account.id)},
+        metadata={"calloutcome_account_id": str(account.id)},
     )
 
     return session.url
@@ -68,9 +68,9 @@ def handle_checkout_completed(session):
     """Process a completed checkout session. Update account with Stripe IDs + plan."""
     from .models import db, Account
 
-    account_id = session.get("metadata", {}).get("callverdict_account_id")
+    account_id = session.get("metadata", {}).get("calloutcome_account_id")
     if not account_id:
-        logger.warning("Checkout session missing callverdict_account_id metadata")
+        logger.warning("Checkout session missing calloutcome_account_id metadata")
         return
 
     account = db.session.get(Account, int(account_id))

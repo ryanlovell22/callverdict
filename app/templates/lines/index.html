@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Tracking Lines — CallVerdict{% endblock %}
+{% block title %}Tracking Lines — CallOutcome{% endblock %}
 
 {% block content %}
 <h2>Tracking Lines</h2>
@@ -13,6 +13,7 @@
     <table role="grid">
         <thead>
             <tr>
+                <th style="width: 2.5rem;"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this.checked)"></th>
                 <th>Label</th>
                 <th>Phone Number</th>
                 <th>Partner</th>
@@ -23,6 +24,7 @@
         <tbody>
             {% for line in lines %}
             <tr>
+                <td><input type="checkbox" class="line-checkbox" data-line-id="{{ line.id }}" onchange="onCheckboxChange()"></td>
                 <td>{{ line.label or '—' }}</td>
                 <td>{{ line.twilio_phone_number or '—' }}</td>
                 <td>{{ line.partner.name if line.partner else '—' }}</td>
@@ -38,9 +40,119 @@
         </tbody>
     </table>
 </figure>
+
+<!-- Bulk action bar -->
+<div id="bulk-bar" class="bulk-action-bar" style="display: none;">
+    <span id="bulk-count">0 selected</span>
+    <select id="bulk-partner" style="margin: 0; width: auto; min-width: 200px;">
+        <option value="">— Unassign Partner —</option>
+        {% for p in partners %}
+        <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+    </select>
+    <button onclick="bulkAssign()" style="margin: 0; width: auto;">Assign</button>
+    <a href="javascript:void(0)" onclick="clearSelection()" style="margin-left: 0.5rem;">Clear</a>
+    <span id="bulk-error" class="validation-error" style="display: none; margin-left: 1rem;"></span>
+</div>
+
 {% else %}
 <article>
     <p>No tracking lines yet. Add one to start receiving calls.</p>
 </article>
 {% endif %}
+
+<style>
+.bulk-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--pico-card-background-color, #1a1a2e);
+    border-top: 1px solid var(--pico-muted-border-color, #333);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 100;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+}
+.bulk-action-bar span:first-child {
+    font-weight: bold;
+    white-space: nowrap;
+}
+</style>
+
+<script>
+function toggleSelectAll(checked) {
+    document.querySelectorAll('.line-checkbox').forEach(cb => {
+        cb.checked = checked;
+    });
+    onCheckboxChange();
+}
+
+function onCheckboxChange() {
+    const checked = document.querySelectorAll('.line-checkbox:checked');
+    const bar = document.getElementById('bulk-bar');
+    const countEl = document.getElementById('bulk-count');
+    const selectAll = document.getElementById('select-all');
+    const allBoxes = document.querySelectorAll('.line-checkbox');
+
+    if (checked.length > 0) {
+        bar.style.display = 'flex';
+        countEl.textContent = checked.length + ' selected';
+    } else {
+        bar.style.display = 'none';
+    }
+
+    selectAll.checked = allBoxes.length > 0 && checked.length === allBoxes.length;
+    selectAll.indeterminate = checked.length > 0 && checked.length < allBoxes.length;
+}
+
+function clearSelection() {
+    document.querySelectorAll('.line-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    document.getElementById('select-all').checked = false;
+    document.getElementById('select-all').indeterminate = false;
+    document.getElementById('bulk-bar').style.display = 'none';
+}
+
+async function bulkAssign() {
+    const errEl = document.getElementById('bulk-error');
+    errEl.style.display = 'none';
+
+    const lineIds = [];
+    document.querySelectorAll('.line-checkbox:checked').forEach(cb => {
+        lineIds.push(parseInt(cb.dataset.lineId));
+    });
+
+    if (lineIds.length === 0) {
+        errEl.textContent = 'No lines selected.';
+        errEl.style.display = 'inline';
+        return;
+    }
+
+    const partnerSelect = document.getElementById('bulk-partner');
+    const partnerIdRaw = partnerSelect.value;
+    const partnerId = partnerIdRaw ? parseInt(partnerIdRaw) : null;
+
+    try {
+        const resp = await fetch('{{ url_for("lines.bulk_assign") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ line_ids: lineIds, partner_id: partnerId }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+            errEl.textContent = data.error || 'Assignment failed.';
+            errEl.style.display = 'inline';
+        } else {
+            window.location.reload();
+        }
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'inline';
+    }
+}
+</script>
 {% endblock %}

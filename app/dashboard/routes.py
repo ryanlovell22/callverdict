@@ -3,12 +3,39 @@ import io
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
+import pytz
 import requests as http_requests
 from flask import render_template, request, redirect, url_for, flash, jsonify, Response, abort
 from flask_login import login_required, current_user
 
 from ..models import db, Call, TrackingLine, Account, Partner
 from . import bp
+
+
+def _get_user_tz():
+    """Get the current user's timezone as a pytz timezone object."""
+    try:
+        if current_user.user_type == 'partner':
+            account = db.session.get(Account, current_user.account_id)
+            tz_name = account.timezone if account else 'Australia/Adelaide'
+        else:
+            tz_name = current_user.timezone or 'Australia/Adelaide'
+        return pytz.timezone(tz_name)
+    except Exception:
+        return pytz.timezone('Australia/Adelaide')
+
+
+def _local_date_to_utc(date_str, local_tz, end_of_day=False):
+    """Convert a YYYY-MM-DD date string to a naive UTC datetime.
+
+    If end_of_day=True, returns the start of the NEXT day in UTC
+    (i.e., the exclusive upper bound for that date).
+    """
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    if end_of_day:
+        dt += timedelta(days=1)
+    local_dt = local_tz.localize(dt)
+    return local_dt.astimezone(timezone.utc).replace(tzinfo=None)
 
 
 @bp.route("/")
@@ -27,14 +54,16 @@ def index():
     date_from = request.args.get("date_from")
     date_to = request.args.get("date_to")
 
-    # Default to current week (Monday through today) if no date filters provided
-    today = datetime.now(timezone.utc).date()
-    monday = today - timedelta(days=today.weekday())  # weekday() 0=Mon
+    # Default to current week (Monday through today) in the user's local timezone
+    local_tz = _get_user_tz()
+    now_local = datetime.now(timezone.utc).astimezone(local_tz)
+    today_local = now_local.date()
+    monday = today_local - timedelta(days=today_local.weekday())  # weekday() 0=Mon
 
     if not date_from:
         date_from = monday.strftime("%Y-%m-%d")
     if not date_to:
-        date_to = today.strftime("%Y-%m-%d")
+        date_to = today_local.strftime("%Y-%m-%d")
 
     # Partners see only their assigned lines; accounts see everything
     if current_user.user_type == "partner":
@@ -61,12 +90,12 @@ def index():
     if classification and classification in ("JOB_BOOKED", "NOT_BOOKED"):
         query = query.filter_by(classification=classification)
     try:
-        dt_from = datetime.strptime(date_from, "%Y-%m-%d")
+        dt_from = _local_date_to_utc(date_from, local_tz)
         query = query.filter(Call.call_date >= dt_from)
     except ValueError:
         pass
     try:
-        dt_to = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
+        dt_to = _local_date_to_utc(date_to, local_tz, end_of_day=True)
         query = query.filter(Call.call_date < dt_to)
     except ValueError:
         pass
@@ -87,7 +116,7 @@ def index():
     answered = booked + not_booked
     rate = round(booked / answered * 100, 1) if answered > 0 else 0
 
-    # Lead value: per-booking value (JOB_BOOKED calls) + per-call value (all answered calls)
+    # Lead value: per-booking + per-call + per-voicemail + per-qualified-call
     booking_value = db.session.query(
         func.coalesce(func.sum(Partner.cost_per_lead), 0)
     ).join(TrackingLine, TrackingLine.partner_id == Partner.id
@@ -105,7 +134,25 @@ def index():
         ).with_entities(Call.id))
     ).scalar()
 
-    total_value = booking_value + call_value
+    voicemail_value = db.session.query(
+        func.coalesce(func.sum(Partner.cost_per_voicemail), 0)
+    ).join(TrackingLine, TrackingLine.partner_id == Partner.id
+    ).join(Call, Call.tracking_line_id == TrackingLine.id).filter(
+        Call.id.in_(query.filter(Call.classification == "VOICEMAIL").with_entities(Call.id))
+    ).scalar()
+
+    qualified_value = db.session.query(
+        func.coalesce(func.sum(Partner.cost_per_qualified_call), 0)
+    ).join(TrackingLine, TrackingLine.partner_id == Partner.id
+    ).join(Call, Call.tracking_line_id == TrackingLine.id).filter(
+        Call.id.in_(query.filter(
+            Call.call_outcome == "answered",
+            Call.status == "completed",
+        ).with_entities(Call.id)),
+        Call.call_duration >= Partner.qualified_call_seconds,
+    ).scalar()
+
+    total_value = booking_value + call_value + voicemail_value + qualified_value
 
     # Paginate the table query (all calls including missed)
     pagination = query.order_by(Call.call_date.desc()).paginate(page=page, per_page=50, error_out=False)
@@ -123,14 +170,14 @@ def index():
     # Build date range label
     is_default_week = (
         date_from == monday.strftime("%Y-%m-%d")
-        and date_to == today.strftime("%Y-%m-%d")
+        and date_to == today_local.strftime("%Y-%m-%d")
     )
     if is_default_week:
-        if monday == today:
-            week_label = "Today: {}".format(today.strftime("%-d %b %Y"))
+        if monday == today_local:
+            week_label = "Today: {}".format(today_local.strftime("%-d %b %Y"))
         else:
             week_label = "This week: {} - {}".format(
-                monday.strftime("%-d %b"), today.strftime("%-d %b %Y")
+                monday.strftime("%-d %b"), today_local.strftime("%-d %b %Y")
             )
     else:
         week_label = "{} - {}".format(date_from, date_to)
@@ -317,13 +364,15 @@ def export_csv():
     date_from = request.args.get("date_from")
     date_to = request.args.get("date_to")
 
-    # Default to current week (Monday through today)
-    today = datetime.now(timezone.utc).date()
-    monday = today - timedelta(days=today.weekday())
+    # Default to current week (Monday through today) in the user's local timezone
+    local_tz = _get_user_tz()
+    now_local = datetime.now(timezone.utc).astimezone(local_tz)
+    today_local = now_local.date()
+    monday = today_local - timedelta(days=today_local.weekday())
     if not date_from:
         date_from = monday.strftime("%Y-%m-%d")
     if not date_to:
-        date_to = today.strftime("%Y-%m-%d")
+        date_to = today_local.strftime("%Y-%m-%d")
 
     # Build query (same logic as index)
     if current_user.user_type == "partner":
@@ -349,12 +398,12 @@ def export_csv():
     if classification and classification in ("JOB_BOOKED", "NOT_BOOKED"):
         query = query.filter_by(classification=classification)
     try:
-        dt_from = datetime.strptime(date_from, "%Y-%m-%d")
+        dt_from = _local_date_to_utc(date_from, local_tz)
         query = query.filter(Call.call_date >= dt_from)
     except ValueError:
         pass
     try:
-        dt_to = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
+        dt_to = _local_date_to_utc(date_to, local_tz, end_of_day=True)
         query = query.filter(Call.call_date < dt_to)
     except ValueError:
         pass
@@ -383,11 +432,12 @@ def export_csv():
     # Build CSV
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["Date", "Line", "Caller", "Customer", "Duration", "Classification", "Booking Time", "Summary"])
+    writer.writerow(["Date", "Line", "Partner", "Caller", "Customer", "Duration", "Classification", "Booking Time", "Summary"])
     for call in calls:
         writer.writerow([
             _local_date(call.call_date),
             call.tracking_line.label if call.tracking_line else '',
+            call.tracking_line.partner.name if call.tracking_line and call.tracking_line.partner else '',
             call.caller_number or '',
             call.customer_name or '',
             f"{call.call_duration // 60}:{call.call_duration % 60:02d}" if call.call_duration else '',
@@ -403,7 +453,7 @@ def export_csv():
         bom + csv_data,
         mimetype='text/csv; charset=utf-8',
         headers={
-            'Content-Disposition': 'attachment; filename="callverdict_export.csv"',
+            'Content-Disposition': 'attachment; filename="calloutcome_export.csv"',
             'Content-Type': 'text/csv; charset=utf-8',
         }
     )
@@ -464,7 +514,7 @@ def create_shared_link():
     show_recordings = "show_recordings" in request.form
     show_transcripts = "show_transcripts" in request.form
     date_window_days = request.form.get("date_window_days", 30, type=int)
-    if date_window_days not in (7, 14, 30, 60, 90):
+    if date_window_days not in (0, 7, 14, 30, 60, 90):
         date_window_days = 30
 
     # Get selected line IDs and validate they belong to this account + partner
@@ -495,7 +545,7 @@ def create_shared_link():
     db.session.add(dashboard)
     db.session.commit()
 
-    flash("Shared link created.", "success")
+    flash("Dashboard Share Link created.", "success")
     return redirect(url_for("dashboard.shared_links"))
 
 
@@ -511,7 +561,7 @@ def toggle_shared_link(dashboard_id):
     dashboard.active = not dashboard.active
     db.session.commit()
     status = "enabled" if dashboard.active else "disabled"
-    flash(f"Shared link {status}.", "success")
+    flash(f"Dashboard Share Link {status}.", "success")
     return redirect(url_for("dashboard.shared_links"))
 
 
@@ -526,5 +576,5 @@ def delete_shared_link(dashboard_id):
     ).first_or_404()
     db.session.delete(dashboard)
     db.session.commit()
-    flash("Shared link deleted.", "success")
+    flash("Dashboard Share Link deleted.", "success")
     return redirect(url_for("dashboard.shared_links"))

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 
 from ..models import db, TrackingLine, Partner, Account
@@ -14,10 +14,14 @@ def index():
     lines = TrackingLine.query.filter_by(account_id=current_user.id).order_by(
         TrackingLine.label
     ).all()
+    partners = Partner.query.filter_by(account_id=current_user.id).order_by(
+        Partner.name
+    ).all()
 
     return render_template(
         "lines/index.html",
         lines=lines,
+        partners=partners,
         active_page="lines",
     )
 
@@ -110,3 +114,34 @@ def delete(line_id):
     db.session.commit()
     flash("Tracking line deleted.", "success")
     return redirect(url_for("lines.index"))
+
+
+@bp.route("/bulk-assign", methods=["POST"])
+@login_required
+@account_required
+def bulk_assign():
+    data = request.get_json(silent=True) or {}
+    line_ids = data.get("line_ids", [])
+    partner_id = data.get("partner_id")  # None to unassign
+
+    if not line_ids:
+        return jsonify({"error": "No lines selected."}), 400
+
+    # Validate partner belongs to this account (if assigning)
+    if partner_id is not None:
+        partner = Partner.query.filter_by(
+            id=partner_id, account_id=current_user.id
+        ).first()
+        if not partner:
+            return jsonify({"error": "Partner not found."}), 404
+
+    lines = TrackingLine.query.filter(
+        TrackingLine.id.in_(line_ids),
+        TrackingLine.account_id == current_user.id,
+    ).all()
+
+    for line in lines:
+        line.partner_id = partner_id
+
+    db.session.commit()
+    return jsonify({"updated": len(lines)})

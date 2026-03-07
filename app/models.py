@@ -79,6 +79,15 @@ class Partner(db.Model):
     password_hash = db.Column(db.String(255), nullable=True)
     cost_per_lead = db.Column(db.Numeric(10, 2), default=0)  # per booked job
     cost_per_call = db.Column(db.Numeric(10, 2), default=0)  # per answered call
+
+    # Advanced pricing
+    pricing_model = db.Column(db.String(20), default="standard")
+    cost_per_voicemail = db.Column(db.Numeric(10, 2), default=0)
+    weekly_minimum_fee = db.Column(db.Numeric(10, 2), default=0)
+    weekly_minimum_calls = db.Column(db.Integer, default=0)
+    qualified_call_seconds = db.Column(db.Integer, default=60)
+    cost_per_qualified_call = db.Column(db.Numeric(10, 2), default=0)
+
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
